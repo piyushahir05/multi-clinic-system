@@ -33,7 +33,7 @@ Copy these **exact files** from Replit to your local folder:
 - `local_requirements.txt` - Python dependencies
 
 ### ✅ Folders (Copy Everything Inside)
-- `routes/` folder - All Python files inside
+- `local_routes/` folder - All Python route files (NEW - fixes circular imports)
 - `templates/` folder - All HTML files and subfolders
 - `static/` folder - CSS, JavaScript, and images
 - `utils/` folder - Helper files (if exists)
@@ -134,7 +134,7 @@ my-clinic-app/
 ├── local_models.py            ← Local database models
 ├── local_requirements.txt     ← Dependencies
 ├── clinic_appointments.db     ← Created automatically
-├── routes/                    ← All route files
+├── local_routes/              ← Local route files (NO circular imports)
 │   ├── auth.py
 │   ├── booking.py
 │   ├── admin.py

@@ -31,10 +31,10 @@ db.init_app(app)
 
 # Initialize blueprints after app is configured
 def register_blueprints():
-    from routes.auth import auth_bp
-    from routes.booking import booking_bp
-    from routes.admin import admin_bp
-    from routes.doctor import doctor_bp
+    from local_routes.auth import auth_bp
+    from local_routes.booking import booking_bp
+    from local_routes.admin import admin_bp
+    from local_routes.doctor import doctor_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(booking_bp)
