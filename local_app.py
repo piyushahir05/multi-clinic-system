@@ -1,14 +1,8 @@
 import os
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
+from flask import Flask, render_template
 from werkzeug.middleware.proxy_fix import ProxyFix
 import logging
-
-class Base(DeclarativeBase):
-    pass
-
-db = SQLAlchemy(model_class=Base)
+from local_db import db
 
 # create the app
 app = Flask(__name__)
@@ -35,27 +29,30 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 # Initialize the app with the extension
 db.init_app(app)
 
-# Import all routes
-from routes.auth import auth_bp
-from routes.booking import booking_bp
-from routes.admin import admin_bp
-from routes.doctor import doctor_bp
+# Initialize blueprints after app is configured
+def register_blueprints():
+    from routes.auth import auth_bp
+    from routes.booking import booking_bp
+    from routes.admin import admin_bp
+    from routes.doctor import doctor_bp
+
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(booking_bp)
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(doctor_bp)
 
 # Register blueprints
-app.register_blueprint(auth_bp)
-app.register_blueprint(booking_bp)
-app.register_blueprint(admin_bp)
-app.register_blueprint(doctor_bp)
+register_blueprints()
 
 with app.app_context():
-    # Import models to create tables
-    import models
+    # Import local models to create tables
+    import local_models
     
     # Create all tables
     db.create_all()
     
     # Create default admin user if it doesn't exist
-    from models import User
+    from local_models import User
     from werkzeug.security import generate_password_hash
     
     admin_user = User.query.filter_by(email='admin@clinic.com').first()
@@ -72,7 +69,7 @@ with app.app_context():
         print("Default admin user created: admin@clinic.com / admin123")
     
     # Create sample clinic and doctor if they don't exist
-    from models import Clinic, Doctor
+    from local_models import Clinic, Doctor
     
     sample_clinic = Clinic.query.filter_by(name='General Medical Center').first()
     if not sample_clinic:
@@ -112,7 +109,7 @@ with app.app_context():
         print("Sample doctor created: doctor@clinic.com / doctor123")
         
         # Create some sample time slots
-        from models import TimeSlot
+        from local_models import TimeSlot
         from datetime import datetime, timedelta
         
         # Create time slots for the next 7 days
@@ -149,5 +146,4 @@ def index():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    from flask import render_template
     app.run(host='127.0.0.1', port=5000, debug=True)

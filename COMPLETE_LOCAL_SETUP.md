@@ -39,7 +39,8 @@ Copy **ALL** of these files from Replit to your `my-clinic-app` folder:
 
 **Main Files:**
 - `local_main.py` (your startup file)
-- `local_app.py` (database configuration)
+- `local_app.py` (Flask app configuration)
+- `local_db.py` (database configuration - IMPORTANT!)
 - `local_requirements.txt` (dependencies list)
 - `models.py` (database models)
 - `.env.example` (configuration template)
@@ -59,6 +60,7 @@ Your folder should look like:
 my-clinic-app/
 ├── local_main.py
 ├── local_app.py
+├── local_db.py          ← IMPORTANT: New file that fixes import issues
 ├── local_requirements.txt
 ├── models.py
 ├── .env.example
