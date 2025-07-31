@@ -46,24 +46,27 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Step 3: Database Setup
+### Step 3: Database Setup (Two Options)
 
-1. **Install PostgreSQL** and create a database:
+**Option A: SQLite (Recommended for Local Development)**
+- No installation needed! SQLite comes with Python
+- Database file (`clinic_appointments.db`) created automatically
+- Perfect for development and testing
+
+**Option B: PostgreSQL (Advanced)**
 ```sql
--- Connect to PostgreSQL as superuser
+-- If you prefer PostgreSQL, create a database:
 CREATE DATABASE clinic_appointments;
 CREATE USER clinic_user WITH PASSWORD 'your_password';
 GRANT ALL PRIVILEGES ON DATABASE clinic_appointments TO clinic_user;
 ```
 
-2. **Set Environment Variables**:
-
-Create a `.env` file in the project root:
+**Environment Configuration** (Optional):
+Create a `.env` file only if you want to customize settings:
 ```env
-DATABASE_URL=postgresql://clinic_user:your_password@localhost:5432/clinic_appointments
+# Optional: Only needed for custom configuration
 SESSION_SECRET=your-secret-key-here-make-it-long-and-random
-FLASK_ENV=development
-FLASK_DEBUG=True
+DATABASE_URL=postgresql://user:pass@localhost:5432/clinic_appointments  # Only for PostgreSQL
 ```
 
 ### Step 4: VS Code Configuration
