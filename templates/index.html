@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Multi-Clinic Appointment System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section bg-primary text-white py-5 mb-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    <i class="fas fa-heart text-light"></i>
+                    Your Health, Our Priority
+                </h1>
+                <p class="lead mb-4">
+                    Book appointments with top doctors across multiple clinics. 
+                    Experience seamless healthcare management with our advanced booking system.
+                </p>
+                {% if not session.user_id %}
+                    <div class="d-flex gap-3">
+                        <a href="{{ url_for('auth_bp.register') }}" class="btn btn-light btn-lg">
+                            <i class="fas fa-user-plus"></i> Get Started
+                        </a>
+                        <a href="{{ url_for('auth_bp.login') }}" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </a>
+                    </div>
+                {% else %}
+                    <a href="{{ url_for('auth_bp.dashboard') }}" class="btn btn-light btn-lg">
+                        <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                    </a>
+                {% endif %}
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-hospital fa-10x text-light opacity-75"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container mb-5">
+    <div class="row text-center mb-5">
+        <div class="col">
+            <h2 class="display-5 fw-bold text-primary mb-3">Why Choose MediCare?</h2>
+            <p class="lead text-muted">Experience the future of healthcare appointment management</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0 feature-card">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-calendar-check fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Easy Booking</h5>
+                    <p class="card-text text-muted">
+                        Simple 3-step process: Select clinic, choose doctor, pick your preferred time slot.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0 feature-card">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-user-md fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Expert Doctors</h5>
+                    <p class="card-text text-muted">
+                        Access to qualified doctors across multiple specializations and clinics.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0 feature-card">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-shield-alt fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Secure & Reliable</h5>
+                    <p class="card-text text-muted">
+                        Your personal information is protected with industry-standard security measures.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col">
+                <h2 class="display-5 fw-bold text-primary mb-3">How It Works</h2>
+                <p class="lead text-muted">Book your appointment in just a few simple steps</p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-3 text-center">
+                <div class="step-number mb-3">
+                    <span class="badge bg-primary rounded-circle p-3 fs-4">1</span>
+                </div>
+                <h5 class="fw-bold">Select Clinic</h5>
+                <p class="text-muted">Choose from our network of partner clinics</p>
+            </div>
+
+            <div class="col-md-3 text-center">
+                <div class="step-number mb-3">
+                    <span class="badge bg-primary rounded-circle p-3 fs-4">2</span>
+                </div>
+                <h5 class="fw-bold">Choose Doctor</h5>
+                <p class="text-muted">Pick the right specialist for your needs</p>
+            </div>
+
+            <div class="col-md-3 text-center">
+                <div class="step-number mb-3">
+                    <span class="badge bg-primary rounded-circle p-3 fs-4">3</span>
+                </div>
+                <h5 class="fw-bold">Book Time Slot</h5>
+                <p class="text-muted">Select your preferred appointment time</p>
+            </div>
+
+            <div class="col-md-3 text-center">
+                <div class="step-number mb-3">
+                    <span class="badge bg-success rounded-circle p-3 fs-4">✓</span>
+                </div>
+                <h5 class="fw-bold">Confirmed!</h5>
+                <p class="text-muted">Receive instant confirmation of your appointment</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Login Types Section (for non-authenticated users) -->
+{% if not session.user_id %}
+<div class="container py-5">
+    <div class="row text-center mb-5">
+        <div class="col">
+            <h2 class="display-5 fw-bold text-primary mb-3">Choose Your Role</h2>
+            <p class="lead text-muted">Access the system based on your role</p>
+        </div>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0 role-card">
+                <div class="card-body text-center p-4">
+                    <div class="role-icon mb-3">
+                        <i class="fas fa-user fa-3x text-info"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Patient</h5>
+                    <p class="card-text text-muted mb-4">
+                        Book appointments and manage your healthcare visits
+                    </p>
+                    <a href="{{ url_for('auth_bp.login') }}?role=patient" class="btn btn-info">
+                        <i class="fas fa-sign-in-alt"></i> Login as Patient
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0 role-card">
+                <div class="card-body text-center p-4">
+                    <div class="role-icon mb-3">
+                        <i class="fas fa-user-md fa-3x text-success"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Doctor</h5>
+                    <p class="card-text text-muted mb-4">
+                        Manage your schedule and view patient appointments
+                    </p>
+                    <a href="{{ url_for('auth_bp.login') }}?role=doctor" class="btn btn-success">
+                        <i class="fas fa-sign-in-alt"></i> Login as Doctor
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0 role-card">
+                <div class="card-body text-center p-4">
+                    <div class="role-icon mb-3">
+                        <i class="fas fa-user-shield fa-3x text-warning"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Admin</h5>
+                    <p class="card-text text-muted mb-4">
+                        Manage clinics, doctors, and system configuration
+                    </p>
+                    <a href="{{ url_for('auth_bp.login') }}?role=admin" class="btn btn-warning">
+                        <i class="fas fa-sign-in-alt"></i> Login as Admin
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Statistics Section -->
+<div class="bg-primary text-white py-5">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <h2 class="display-4 fw-bold">500+</h2>
+                    <p class="lead">Happy Patients</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <h2 class="display-4 fw-bold">50+</h2>
+                    <p class="lead">Expert Doctors</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <h2 class="display-4 fw-bold">25+</h2>
+                    <p class="lead">Partner Clinics</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <h2 class="display-4 fw-bold">1000+</h2>
+                    <p class="lead">Appointments</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
