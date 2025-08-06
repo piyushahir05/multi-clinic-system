@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Add Time Slot - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h2><i class="fas fa-calendar-plus me-2"></i>Add Time Slot</h2>
+    <p>Create a new appointment time slot for a doctor</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>Time Slot Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="doctor_id" class="form-label">
+                            <i class="fas fa-user-md me-1"></i>Doctor <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select" id="doctor_id" name="doctor_id" required>
+                            <option value="">Select a doctor</option>
+                            {% for doctor in doctors %}
+                                <option value="{{ doctor.id }}" {{ 'selected' if request.form.get('doctor_id') == doctor.id|string }}>
+                                    Dr. {{ doctor.user.name }} - {{ doctor.specialization }} ({{ doctor.clinic.name }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="date" class="form-label">
+                            <i class="fas fa-calendar-day me-1"></i>Date <span class="text-danger">*</span>
+                        </label>
+                        <input type="date" class="form-control" id="date" name="date" required 
+                               min="{{ today_date }}" value="{{ request.form.get('date', '') }}">
+                        <div class="form-text">Select a future date for the appointment slot.</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="start_time" class="form-label">
+                                    <i class="fas fa-play me-1"></i>Start Time <span class="text-danger">*</span>
+                                </label>
+                                <input type="time" class="form-control" id="start_time" name="start_time" required 
+                                       value="{{ request.form.get('start_time', '') }}">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="end_time" class="form-label">
+                                    <i class="fas fa-stop me-1"></i>End Time <span class="text-danger">*</span>
+                                </label>
+                                <input type="time" class="form-control" id="end_time" name="end_time" required 
+                                       value="{{ request.form.get('end_time', '') }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Important:</strong> 
+                        <ul class="mb-0 mt-2">
+                            <li>Time slots must be for future dates only</li>
+                            <li>End time must be after start time</li>
+                            <li>Duplicate time slots for the same doctor will not be created</li>
+                            <li>Once created, the time slot will be available for patient booking</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success flex-grow-1">
+                            <i class="fas fa-save me-2"></i>Create Time Slot
+                        </button>
+                        <a href="{{ url_for('admin_bp.manage_time_slots') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{{ url_for('admin_bp.manage_time_slots') }}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Time Slots
+    </a>
+</div>
+
+{% if not doctors %}
+    <div class="alert alert-warning mt-4">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>No Doctors Available:</strong> You need to add doctors before creating time slots.
+        <a href="{{ url_for('admin_bp.add_doctor') }}" class="btn btn-sm btn-warning ms-2">
+            <i class="fas fa-plus me-1"></i>Add Doctor First
+        </a>
+    </div>
+{% endif %}
+
+<script>
+// Set minimum date to today
+document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('date');
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.setAttribute('min', today);
+    
+    // Auto-suggest end time when start time changes
+    const startTimeInput = document.getElementById('start_time');
+    const endTimeInput = document.getElementById('end_time');
+    
+    startTimeInput.addEventListener('change', function() {
+        if (this.value && !endTimeInput.value) {
+            const startTime = new Date('2000-01-01 ' + this.value);
+            startTime.setMinutes(startTime.getMinutes() + 30); // Add 30 minutes
+            const endTime = startTime.toTimeString().slice(0, 5);
+            endTimeInput.value = endTime;
+        }
+    });
+});
+</script>
+{% endblock %}

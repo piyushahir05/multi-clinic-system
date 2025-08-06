@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Time Slots - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h2><i class="fas fa-clock me-2"></i>Manage Time Slots</h2>
+    <p>View and manage doctor availability and appointment time slots</p>
+</div>
+
+<!-- Quick Action -->
+<div class="mb-4">
+    <a href="{{ url_for('admin_bp.add_time_slot') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>Add Time Slot
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label for="doctor_id" class="form-label">Doctor</label>
+                <select class="form-select" id="doctor_id" name="doctor_id">
+                    <option value="">All Doctors</option>
+                    {% for doctor in doctors %}
+                        <option value="{{ doctor.id }}" {{ 'selected' if selected_doctor_id == doctor.id }}>
+                            Dr. {{ doctor.user.name }} ({{ doctor.specialization }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="date" class="form-label">Date</label>
+                <input type="date" class="form-control" id="date" name="date" value="{{ date_filter }}">
+            </div>
+            <div class="col-md-3">
+                <label for="availability" class="form-label">Availability</label>
+                <select class="form-select" id="availability" name="availability">
+                    <option value="">All Slots</option>
+                    <option value="available" {{ 'selected' if availability == 'available' }}>Available Only</option>
+                    <option value="booked" {{ 'selected' if availability == 'booked' }}>Booked Only</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Filter
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if time_slots %}
+    <div class="row g-4">
+        {% for slot in time_slots %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 {{ 'border-success' if slot.is_available else 'border-warning' }}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h6 class="card-title mb-1">Dr. {{ slot.doctor.user.name }}</h6>
+                                <p class="text-success small mb-0">{{ slot.doctor.specialization }}</p>
+                                <p class="text-muted small mb-0">{{ slot.doctor.clinic.name }}</p>
+                            </div>
+                            <span class="badge {{ 'bg-success' if slot.is_available else 'bg-warning' }}">
+                                {{ 'Available' if slot.is_available else 'Booked' }}
+                            </span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6 class="mb-1">
+                                <i class="fas fa-calendar-day me-1"></i>
+                                {{ slot.date.strftime('%B %d, %Y') }}
+                            </h6>
+                            <p class="mb-0">
+                                <i class="fas fa-clock me-1"></i>
+                                {{ slot.start_time }} - {{ slot.end_time }}
+                            </p>
+                        </div>
+                        
+                        {% if not slot.is_available %}
+                            <!-- Show appointment info if slot is booked -->
+                            {% set appointment = slot.appointments | selectattr('status', 'equalto', 'scheduled') | first %}
+                            {% if appointment %}
+                                <div class="mb-3 p-2 bg-light rounded">
+                                    <h6 class="mb-1 small">
+                                        <i class="fas fa-user me-1"></i>Patient:
+                                    </h6>
+                                    <p class="mb-1 small">{{ appointment.patient.name }}</p>
+                                    <p class="mb-0 small text-muted">{{ appointment.patient.email }}</p>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                        
+                        <div class="d-flex gap-2">
+                            {% set has_scheduled_appointment = slot.appointments | selectattr('status', 'equalto', 'scheduled') | list | length > 0 %}
+                            {% if not has_scheduled_appointment %}
+                                <form method="POST" action="{{ url_for('admin_bp.delete_time_slot', slot_id=slot.id) }}" 
+                                      onsubmit="return confirm('Are you sure you want to delete this time slot?');" class="flex-grow-1">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                        <i class="fas fa-trash me-1"></i>Delete
+                                    </button>
+                                </form>
+                            {% else %}
+                                <button class="btn btn-secondary btn-sm w-100" disabled>
+                                    <i class="fas fa-lock me-1"></i>Has Appointment
+                                </button>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Created {{ slot.created_at.strftime('%B %d') if slot.created_at else 'Recently' }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-calendar-times fa-4x text-muted mb-4"></i>
+        <h4 class="text-muted">No Time Slots Found</h4>
+        <p class="text-muted">No time slots match your current filters or none have been created yet.</p>
+        <div class="d-flex gap-2 justify-content-center">
+            <a href="{{ url_for('admin_bp.add_time_slot') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add Time Slot
+            </a>
+            {% if selected_doctor_id or date_filter or availability %}
+                <a href="{{ url_for('admin_bp.manage_time_slots') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-refresh me-2"></i>Clear Filters
+                </a>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
