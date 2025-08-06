@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Appointments - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h2><i class="fas fa-calendar-check me-2"></i>Manage Appointments</h2>
+    <p>View and manage patient appointments across all clinics</p>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="all">All Statuses</option>
+                    <option value="scheduled" {{ 'selected' if status_filter == 'scheduled' }}>Scheduled</option>
+                    <option value="completed" {{ 'selected' if status_filter == 'completed' }}>Completed</option>
+                    <option value="cancelled" {{ 'selected' if status_filter == 'cancelled' }}>Cancelled</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="date" class="form-label">Date</label>
+                <input type="date" class="form-control" id="date" name="date">
+            </div>
+            <div class="col-md-4">
+                <label for="search" class="form-label">Search</label>
+                <input type="text" class="form-control" id="search" name="search" 
+                       placeholder="Patient name, doctor, or clinic">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Filter
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if appointments.items %}
+    <div class="row g-4 mb-4">
+        {% for appointment in appointments.items %}
+            <div class="col-12">
+                <div class="card appointment-card {{ 'cancelled' if appointment.status == 'cancelled' else 'completed' if appointment.status == 'completed' else '' }}">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-start">
+                                    <div class="me-3">
+                                        {% if appointment.status == 'scheduled' %}
+                                            <div class="feature-icon bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-calendar-check"></i>
+                                            </div>
+                                        {% elif appointment.status == 'completed' %}
+                                            <div class="feature-icon bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-check-circle"></i>
+                                            </div>
+                                        {% else %}
+                                            <div class="feature-icon bg-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-times-circle"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">{{ appointment.patient.name }}</h6>
+                                        <p class="text-muted mb-0 small">{{ appointment.patient.email }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <h6 class="mb-1">Dr. {{ appointment.doctor.user.name }}</h6>
+                                <p class="text-success mb-0 small">{{ appointment.doctor.specialization }}</p>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <h6 class="mb-1">{{ appointment.doctor.clinic.name }}</h6>
+                                <p class="text-muted mb-0 small">{{ appointment.doctor.clinic.address }}</p>
+                            </div>
+                            
+                            <div class="col-md-2">
+                                <div class="text-center">
+                                    <h6 class="mb-1">{{ appointment.time_slot.date.strftime('%b %d') }}</h6>
+                                    <p class="mb-1 small">{{ appointment.time_slot.start_time }}</p>
+                                    <span class="badge {{ 'bg-success' if appointment.status == 'scheduled' else 'bg-primary' if appointment.status == 'completed' else 'bg-danger' }}">
+                                        {{ appointment.status.title() }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-1">
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="viewAppointmentDetails({{ appointment.id }})">
+                                            <i class="fas fa-eye me-2"></i>View Details
+                                        </a></li>
+                                        {% if appointment.status == 'scheduled' %}
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="#" onclick="cancelAppointment({{ appointment.id }})">
+                                                <i class="fas fa-times me-2"></i>Cancel
+                                            </a></li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if appointment.notes %}
+                            <div class="mt-3 pt-3 border-top">
+                                <h6 class="mb-2 small">
+                                    <i class="fas fa-notes-medical me-1"></i>Notes:
+                                </h6>
+                                <p class="text-muted mb-0 small">{{ appointment.notes }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if appointments.pages > 1 %}
+        <nav aria-label="Appointments pagination">
+            <ul class="pagination justify-content-center">
+                {% if appointments.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_bp.manage_appointments', page=appointments.prev_num, status=status_filter) }}">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for page_num in appointments.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != appointments.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin_bp.manage_appointments', page=page_num, status=status_filter) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if appointments.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_bp.manage_appointments', page=appointments.next_num, status=status_filter) }}">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-calendar-times fa-4x text-muted mb-4"></i>
+        <h4 class="text-muted">No Appointments Found</h4>
+        <p class="text-muted">No appointments match your current filters or none have been booked yet.</p>
+    </div>
+{% endif %}
+{% endblock %}
