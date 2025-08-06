@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}My Schedule - Dr. {{ doctor.user.name }}{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h2><i class="fas fa-calendar-alt me-2"></i>My Schedule</h2>
+    <p>View, filter, and manage your time slots — and add new ones.</p>
+</div>
+
+<!-- Add Time Slot Form -->
+<div class="card mb-5 shadow-sm border-0">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-calendar-plus me-2"></i>Add Time Slot</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="date" class="form-label">Date <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" name="date" id="date" required min="{{ today_date }}" value="{{ request.form.get('date', '') }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="start_time" class="form-label">Start Time <span class="text-danger">*</span></label>
+                    <input type="time" class="form-control" name="start_time" id="start_time" required value="{{ request.form.get('start_time', '') }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="end_time" class="form-label">End Time <span class="text-danger">*</span></label>
+                    <input type="time" class="form-control" name="end_time" id="end_time" required value="{{ request.form.get('end_time', '') }}">
+                </div>
+            </div>
+
+            <div class="mt-3 d-flex gap-2">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save me-2"></i>Create Time Slot
+                </button>
+            </div>
+
+            <div class="form-text mt-2">
+                <ul>
+                    <li>Date must be today or later</li>
+                    <li>End time must be after start time</li>
+                    <li>No duplicates allowed</li>
+                </ul>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label for="date" class="form-label">Filter by Date</label>
+                <input type="date" class="form-control" id="date" name="date" value="{{ date_filter }}">
+            </div>
+            <div class="col-md-4">
+                <label for="availability" class="form-label">Filter by Availability</label>
+                <select class="form-select" id="availability" name="availability">
+                    <option value="">All Slots</option>
+                    <option value="available" {{ 'selected' if availability == 'available' }}>Available Only</option>
+                    <option value="booked" {{ 'selected' if availability == 'booked' }}>Booked Only</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Filter
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Schedule Display -->
+{% if time_slots.items %}
+    <div class="row g-4">
+        {% for slot in time_slots.items %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 {{ 'border-success' if slot.is_available else 'border-warning' }}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="card-title mb-1">
+                                <i class="fas fa-calendar-day me-1"></i>{{ slot.date.strftime('%B %d, %Y') }}
+                            </h5>
+                            <p class="card-subtitle text-muted">{{ slot.date.strftime('%A') }}</p>
+                        </div>
+                        <span class="badge {{ 'bg-success' if slot.is_available else 'bg-warning' }}">
+                            {{ 'Available' if slot.is_available else 'Booked' }}
+                        </span>
+                    </div>
+
+                    <div class="mb-2">
+                        <h6><i class="fas fa-clock me-1"></i>{{ slot.start_time }} - {{ slot.end_time }}</h6>
+                    </div>
+
+                    {% if not slot.is_available %}
+                        {% set appointment = slot.appointments | selectattr('status', 'equalto', 'scheduled') | first %}
+                        {% if appointment %}
+                        <div class="mb-2">
+                            <strong><i class="fas fa-user me-1"></i>Patient:</strong> {{ appointment.patient.name }}<br>
+                            {% if appointment.notes %}
+                                <small class="text-muted">{{ appointment.notes[:50] }}{% if appointment.notes|length > 50 %}...{% endif %}</small>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% endif %}
+
+                    <div class="d-flex gap-2">
+                        {% if slot.is_available %}
+                            <form method="POST" action="{{ url_for('doctor_bp.toggle_availability', slot_id=slot.id) }}" onsubmit="return confirm('Make this time slot unavailable?');">
+                                <button class="btn btn-outline-warning btn-sm w-100">
+                                    <i class="fas fa-eye-slash me-1"></i>Make Unavailable
+                                </button>
+                            </form>
+                        {% else %}
+                            {% set has_scheduled_appointment = slot.appointments | selectattr('status', 'equalto', 'scheduled') | list | length > 0 %}
+                            {% if not has_scheduled_appointment %}
+                                <form method="POST" action="{{ url_for('doctor_bp.toggle_availability', slot_id=slot.id) }}" onsubmit="return confirm('Make this time slot available?');">
+                                    <button class="btn btn-outline-success btn-sm w-100">
+                                        <i class="fas fa-eye me-1"></i>Make Available
+                                    </button>
+                                </form>
+                            {% else %}
+                                <button class="btn btn-secondary btn-sm w-100" disabled>
+                                    <i class="fas fa-lock me-1"></i>Has Appointment
+                                </button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Created {{ slot.created_at.strftime('%b %d, %Y') if slot.created_at else 'Recently' }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if time_slots.pages > 1 %}
+        <nav class="mt-4" aria-label="Schedule pagination">
+            <ul class="pagination justify-content-center">
+                {% if time_slots.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('doctor_bp.schedule', page=time_slots.prev_num, date=date_filter, availability=availability) }}">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </a>
+                    </li>
+                {% endif %}
+                {% for page_num in time_slots.iter_pages() %}
+                    {% if page_num %}
+                        <li class="page-item {{ 'active' if page_num == time_slots.page }}">
+                            <a class="page-link" href="{{ url_for('doctor_bp.schedule', page=page_num, date=date_filter, availability=availability) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                {% endfor %}
+                {% if time_slots.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('doctor_bp.schedule', page=time_slots.next_num, date=date_filter, availability=availability) }}">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-calendar-times fa-4x text-muted mb-4"></i>
+        <h4 class="text-muted">No Time Slots Found</h4>
+        <p class="text-muted">Use the form above to add a new time slot.</p>
+    </div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const startInput = document.getElementById('start_time');
+    const endInput = document.getElementById('end_time');
+
+    startInput.addEventListener('change', function () {
+        if (this.value && !endInput.value) {
+            const [h, m] = this.value.split(':').map(Number);
+            const date = new Date();
+            date.setHours(h, m + 30); // +30 minutes
+            endInput.value = date.toTimeString().slice(0, 5);
+        }
+    });
+});
+</script>
+
+{% endblock %}
