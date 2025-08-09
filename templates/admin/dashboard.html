@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Multi-Clinic Appointment System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">
+        <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+    </h1>
+    <div class="text-muted">
+        Welcome, {{ session.user_name }}
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="stat-icon bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="fas fa-users fa-lg"></i>
+                </div>
+                <h3 class="h4 mb-2">{{ total_patients }}</h3>
+                <p class="text-muted mb-0">Total Patients</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="stat-icon bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="fas fa-user-md fa-lg"></i>
+                </div>
+                <h3 class="h4 mb-2">{{ total_doctors }}</h3>
+                <p class="text-muted mb-0">Active Doctors</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="stat-icon bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="fas fa-hospital fa-lg"></i>
+                </div>
+                <h3 class="h4 mb-2">{{ total_clinics }}</h3>
+                <p class="text-muted mb-0">Medical Clinics</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="stat-icon bg-warning text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="fas fa-calendar-check fa-lg"></i>
+                </div>
+                <h3 class="h4 mb-2">{{ recent_appointments|length }}</h3>
+                <p class="text-muted mb-0">This Week</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-4 mb-5">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-0 pb-0">
+                <h5 class="card-title">
+                    <i class="fas fa-plus-circle me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('admin_bp.add_clinic') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-hospital me-2"></i>Add New Clinic
+                    </a>
+                    <a href="{{ url_for('admin_bp.add_doctor') }}" class="btn btn-outline-success">
+                        <i class="fas fa-user-md me-2"></i>Add New Doctor
+                    </a>
+                    <a href="{{ url_for('admin_bp.add_time_slot') }}" class="btn btn-outline-info">
+                        <i class="fas fa-clock me-2"></i>Add Time Slot
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-0 pb-0">
+                <h5 class="card-title">
+                    <i class="fas fa-calendar-alt me-2"></i>Upcoming Appointments
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_appointments %}
+                    <div class="list-group list-group-flush">
+                        {% for appointment in recent_appointments[:5] %}
+                            <div class="list-group-item px-0">
+                                <div class="d-flex w-100 justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">{{ appointment.patient_name }}</h6>
+                                        <p class="mb-1 text-muted small">
+                                            Dr. {{ appointment.doctor_name }} - {{ appointment.clinic_name }}
+                                        </p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>{{ appointment.time_slot.date.strftime('%B %d, %Y') }}
+                                            <i class="fas fa-clock ms-2 me-1"></i>{{ appointment.time_slot.formatted_time }}
+                                        </small>
+                                    </div>
+                                    <span class="badge bg-primary">{{ appointment.status.title() }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('admin_bp.manage_appointments') }}" class="btn btn-sm btn-outline-primary">
+                            View All Appointments
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                        <p>No upcoming appointments</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Management Links -->
+<div class="row g-4">
+    <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body">
+                <i class="fas fa-hospital fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">Manage Clinics</h5>
+                <p class="card-text text-muted">Add, edit, and manage medical clinic information</p>
+                <a href="{{ url_for('admin_bp.manage_clinics') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-right me-1"></i>View Clinics
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body">
+                <i class="fas fa-user-md fa-3x text-success mb-3"></i>
+                <h5 class="card-title">Manage Doctors</h5>
+                <p class="card-text text-muted">Add, edit, and manage doctor profiles and assignments</p>
+                <a href="{{ url_for('admin_bp.manage_doctors') }}" class="btn btn-success">
+                    <i class="fas fa-arrow-right me-1"></i>View Doctors
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body">
+                <i class="fas fa-calendar-check fa-3x text-info mb-3"></i>
+                <h5 class="card-title">Manage Appointments</h5>
+                <p class="card-text text-muted">View and manage patient appointments across all clinics</p>
+                <a href="{{ url_for('admin_bp.manage_appointments') }}" class="btn btn-info">
+                    <i class="fas fa-arrow-right me-1"></i>View Appointments
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body">
+                <i class="fas fa-clock fa-3x text-warning mb-3"></i>
+                <h5 class="card-title">Time Slots</h5>
+                <p class="card-text text-muted">Manage doctor availability and appointment time slots</p>
+                <a href="{{ url_for('admin_bp.manage_time_slots') }}" class="btn btn-warning">
+                    <i class="fas fa-arrow-right me-1"></i>View Time Slots
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

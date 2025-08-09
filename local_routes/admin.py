@@ -47,7 +47,7 @@ def add_clinic():
     redirect_response = require_admin()
     if redirect_response:
         return redirect_response
-    
+
     if request.method == 'POST':
         name = request.form.get('name')
         address = request.form.get('address')
@@ -57,7 +57,7 @@ def add_clinic():
         if not name or not address:
             flash('Clinic name and address are required.', 'error')
             return render_template('admin/add_clinic.html')
-        
+
         clinic = Clinic(
             name=name.strip(),
             address=address.strip(),
@@ -69,12 +69,45 @@ def add_clinic():
             db.session.add(clinic)
             db.session.commit()
             flash('Clinic added successfully!', 'success')
-            return redirect(url_for('admin_bp.manage_clinics'))
+            return redirect(url_for('admin.manage_clinics'))
         except Exception as e:
             db.session.rollback()
             flash('An error occurred while adding the clinic.', 'error')
-    
+            return render_template('admin/add_clinic.html')
+
+    # If GET request, render the form
     return render_template('admin/add_clinic.html')
+
+
+
+@admin_bp.route('/admin/clinics/edit/<int:clinic_id>', methods=['GET', 'POST'])
+def edit_clinic(clinic_id):
+    redirect_response = require_admin()
+    if redirect_response:
+        return redirect_response
+
+    clinic = Clinic.query.get_or_404(clinic_id)
+
+    if request.method == 'POST':
+        clinic.name = request.form.get('name')
+        clinic.address = request.form.get('address')
+        clinic.phone = request.form.get('phone')
+        clinic.email = request.form.get('email')
+
+        try:
+            db.session.commit()
+            flash('Clinic updated successfully!', 'success')
+            return redirect(url_for('admin_bp.manage_clinics'))
+        except Exception as e:
+            db.session.rollback()
+            flash('An error occurred while updating the clinic.', 'error')
+
+    # Instead of edit_clinic.html, reuse manage_clinics.html and pass context for edit
+    clinics = Clinic.query.all()
+    return render_template('admin/manage_clinics.html', clinics=clinics, editing_clinic=clinic)
+
+
+
 
 @admin_bp.route('/admin/doctors')
 def manage_doctors():
@@ -85,14 +118,15 @@ def manage_doctors():
     doctors = Doctor.query.all()
     return render_template('admin/manage_doctors.html', doctors=doctors)
 
+
 @admin_bp.route('/admin/doctors/add', methods=['GET', 'POST'])
 def add_doctor():
     redirect_response = require_admin()
     if redirect_response:
         return redirect_response
-    
+
     clinics = Clinic.query.all()
-    
+
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')
@@ -102,18 +136,17 @@ def add_doctor():
         specialization = request.form.get('specialization')
         license_number = request.form.get('license_number')
         years_experience = request.form.get('years_experience')
-        
+
         if not all([name, email, password, clinic_id]):
             flash('Name, email, password, and clinic are required.', 'error')
             return render_template('admin/add_doctor.html', clinics=clinics)
-        
+
         # Check if user already exists
-        existing_user = User.query.filter_by(email=email).first()
-        if existing_user:
+        if User.query.filter_by(email=email.lower().strip()).first():
             flash('A user with this email already exists.', 'error')
             return render_template('admin/add_doctor.html', clinics=clinics)
-        
-        # Create user account
+
+        # Create the user
         user = User(
             name=name.strip(),
             email=email.lower().strip(),
@@ -121,12 +154,12 @@ def add_doctor():
             role='doctor'
         )
         user.set_password(password)
-        
+
         try:
             db.session.add(user)
-            db.session.flush()  # Get the user ID
-            
-            # Create doctor profile
+            db.session.flush()  # So user.id becomes available
+
+            # Create the doctor profile
             doctor = Doctor(
                 user_id=user.id,
                 clinic_id=int(clinic_id),
@@ -134,17 +167,76 @@ def add_doctor():
                 license_number=license_number.strip() if license_number else None,
                 years_experience=int(years_experience) if years_experience else None
             )
-            
+
             db.session.add(doctor)
             db.session.commit()
+
             flash('Doctor added successfully!', 'success')
             return redirect(url_for('admin_bp.manage_doctors'))
-            
+
         except Exception as e:
             db.session.rollback()
             flash('An error occurred while adding the doctor.', 'error')
-    
+            return render_template('admin/add_doctor.html', clinics=clinics)
+
     return render_template('admin/add_doctor.html', clinics=clinics)
+
+
+
+@admin_bp.route('/edit_doctor/<int:doctor_id>', methods=['GET', 'POST'])
+def edit_doctor(doctor_id):
+    doctor = Doctor.query.get_or_404(doctor_id)
+    user = doctor.user
+    clinics = Clinic.query.all()
+
+    if request.method == 'POST':
+        # Update user-related fields
+        user.name = request.form['name']
+        user.email = request.form['email']
+        user.phone = request.form['phone']
+
+        # Update doctor-specific fields
+        doctor.specialization = request.form['specialization']
+        doctor.license_number = request.form['license_number']
+        doctor.years_experience = int(request.form['years_experience']) if request.form['years_experience'] else None
+        doctor.clinic_id = int(request.form['clinic_id'])
+
+        try:
+            db.session.commit()
+            flash('Doctor details updated successfully.', 'success')
+            return redirect(url_for('admin_bp.manage_doctors'))
+        except Exception as e:
+            db.session.rollback()
+            flash('Error updating doctor: ' + str(e), 'danger')
+
+    return render_template('admin/edit_doctor.html', doctor=doctor, clinics=clinics)
+
+
+
+@admin_bp.route('/delete_doctor/<int:doctor_id>', methods=['POST'])
+def delete_doctor(doctor_id):
+    doctor = Doctor.query.get_or_404(doctor_id)
+    user = doctor.user
+
+    # Check if the doctor has any scheduled appointments
+    scheduled_appointments = [appt for appt in doctor.appointments if appt.status == 'scheduled']
+    if scheduled_appointments:
+        flash("Cannot delete doctor with scheduled appointments.", "warning")
+        return redirect(url_for('admin_bp.manage_doctors'))
+
+    try:
+        db.session.delete(doctor)
+        db.session.delete(user)  # Remove linked user account as well
+        db.session.commit()
+        flash(f"Doctor {user.name} deleted successfully.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash('Error deleting doctor: ' + str(e), 'danger')
+
+    return redirect(url_for('admin_bp.manage_doctors'))
+
+
+
 
 @admin_bp.route('/admin/appointments')
 def manage_appointments():
@@ -155,6 +247,7 @@ def manage_appointments():
     appointments = Appointment.query.order_by(Appointment.created_at.desc()).all()
     return render_template('admin/manage_appointments.html', appointments=appointments)
 
+
 @admin_bp.route('/admin/time-slots')
 def manage_time_slots():
     redirect_response = require_admin()
@@ -163,6 +256,7 @@ def manage_time_slots():
     
     time_slots = TimeSlot.query.order_by(TimeSlot.date.desc(), TimeSlot.start_time).all()
     return render_template('admin/manage_time_slots.html', time_slots=time_slots)
+
 
 @admin_bp.route('/admin/time-slots/add', methods=['GET', 'POST'])
 def add_time_slot():
@@ -203,3 +297,8 @@ def add_time_slot():
             flash('An error occurred while adding the time slot.', 'error')
     
     return render_template('admin/add_time_slot.html', doctors=doctors)
+
+@admin_bp.route('/delete_time_slot/<int:slot_id>', methods=['POST'])
+def delete_time_slot(slot_id):
+    flash(f"Delete route not implemented yet (slot ID: {slot_id})", "info")
+    return redirect(url_for('admin_bp.manage_time_slots'))

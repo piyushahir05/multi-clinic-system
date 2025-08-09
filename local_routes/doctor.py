@@ -5,6 +5,8 @@ from datetime import datetime, date, time
 
 doctor_bp = Blueprint('doctor_bp', __name__)
 
+
+
 def require_doctor():
     if 'user_id' not in session or session.get('user_role') != 'doctor':
         return redirect(url_for('auth_bp.login'))
@@ -46,12 +48,21 @@ def dashboard():
         status='scheduled'
     ).count()
     
+    stats = {
+        'today_appointments': len(today_appointments),
+        'total_appointments': total_appointments,
+        'patients_seen': total_appointments - pending_appointments,
+        'pending_appointments': pending_appointments
+    }
+
     return render_template('doctor/dashboard.html',
                          doctor=doctor,
                          today_appointments=today_appointments,
                          upcoming_appointments=upcoming_appointments,
                          total_appointments=total_appointments,
-                         pending_appointments=pending_appointments)
+                         pending_appointments=pending_appointments,
+                         stats=stats)
+
 
 @doctor_bp.route('/doctor/appointments')
 def appointments():
@@ -73,79 +84,89 @@ def appointments():
                          doctor=doctor, 
                          appointments=appointments)
 
-@doctor_bp.route('/doctor/schedule')
+
+
+@doctor_bp.route('/doctor/schedule', methods=['GET', 'POST'])
 def schedule():
     redirect_response = require_doctor()
     if redirect_response:
         return redirect_response
-    
-    doctor = get_doctor_profile()
-    if not doctor:
-        flash('Doctor profile not found.', 'error')
-        return redirect(url_for('auth_bp.logout'))
-    
-    # Get all time slots for this doctor
-    time_slots = TimeSlot.query.filter_by(doctor_id=doctor.id).order_by(
-        TimeSlot.date, TimeSlot.start_time
-    ).all()
-    
-    return render_template('doctor/schedule.html', 
-                         doctor=doctor, 
-                         time_slots=time_slots)
 
-@doctor_bp.route('/doctor/schedule/add', methods=['GET', 'POST'])
-def add_schedule():
-    redirect_response = require_doctor()
-    if redirect_response:
-        return redirect_response
-    
     doctor = get_doctor_profile()
     if not doctor:
         flash('Doctor profile not found.', 'error')
         return redirect(url_for('auth_bp.logout'))
-    
+
+    # Fetch filters from GET request
+    date_filter = request.args.get('date')
+    availability = request.args.get('availability')
+
+    query = TimeSlot.query.filter_by(doctor_id=doctor.id)
+
+    if date_filter:
+        try:
+            date_obj = datetime.strptime(date_filter, '%Y-%m-%d').date()
+            query = query.filter(TimeSlot.date == date_obj)
+        except ValueError:
+            flash('Invalid date format.', 'error')
+
+    if availability == 'available':
+        query = query.filter_by(is_available=True)
+    elif availability == 'booked':
+        query = query.filter_by(is_available=False)
+
+    page = request.args.get('page', 1, type=int)
+    per_page = 10  # or whatever you want
+
+    time_slots = query.order_by(TimeSlot.date, TimeSlot.start_time).paginate(page=page, per_page=per_page)
+
+
+    # Handle time slot creation if POST
     if request.method == 'POST':
         date_str = request.form.get('date')
-        start_time = request.form.get('start_time')
-        end_time = request.form.get('end_time')
-        
+        start_time_str = request.form.get('start_time')
+        end_time_str = request.form.get('end_time')
+
+        start_time = datetime.strptime(start_time_str, '%H:%M').time()
+        end_time = datetime.strptime(end_time_str, '%H:%M').time()
+
         if not all([date_str, start_time, end_time]):
             flash('All fields are required.', 'error')
-            return render_template('doctor/add_schedule.html', doctor=doctor)
-        
+            return render_template('doctor/schedule.html', doctor=doctor, time_slots=time_slots, date_filter=date_filter, availability=availability)
+
         try:
             appointment_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            
-            # Check if time slot already exists
+
             existing_slot = TimeSlot.query.filter_by(
                 doctor_id=doctor.id,
                 date=appointment_date,
                 start_time=start_time,
                 end_time=end_time
             ).first()
-            
+
             if existing_slot:
                 flash('A time slot already exists for this date and time.', 'warning')
-                return render_template('doctor/add_schedule.html', doctor=doctor)
-            
-            time_slot = TimeSlot(
-                doctor_id=doctor.id,
-                date=appointment_date,
-                start_time=start_time,
-                end_time=end_time,
-                is_available=True
-            )
-            
-            db.session.add(time_slot)
-            db.session.commit()
-            flash('Time slot added successfully!', 'success')
-            return redirect(url_for('doctor_bp.schedule'))
-            
+            else:
+                new_slot = TimeSlot(
+                    doctor_id=doctor.id,
+                    date=appointment_date,
+                    start_time=start_time,
+                    end_time=end_time,
+                    is_available=True
+                )
+                db.session.add(new_slot)
+                db.session.commit()
+                flash('Time slot added successfully!', 'success')
+                return redirect(url_for('doctor_bp.schedule'))
         except Exception as e:
             db.session.rollback()
             flash('An error occurred while adding the time slot.', 'error')
-    
-    return render_template('doctor/add_schedule.html', doctor=doctor)
+
+    return render_template('doctor/schedule.html', doctor=doctor, time_slots=time_slots, date_filter=date_filter, availability=availability)
+
+
+
+
 
 @doctor_bp.route('/doctor/appointment/<int:appointment_id>/complete', methods=['POST'])
 def complete_appointment(appointment_id):

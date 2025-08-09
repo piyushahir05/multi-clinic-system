@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Select Doctor - {{ clinic.name }}{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h2><i class="fas fa-user-md me-2"></i>Select a Doctor</h2>
+    <p>Choose a doctor at {{ clinic.name }}</p>
+</div>
+
+<!-- Clinic Info -->
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-body">
+        <div class="d-flex align-items-center">
+            <div class="feature-icon bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                <i class="fas fa-clinic-medical"></i>
+            </div>
+            <div>
+                <h5 class="mb-1">{{ clinic.name }}</h5>
+                <p class="text-muted mb-0">
+                    <i class="fas fa-map-marker-alt me-1"></i>{{ clinic.address }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if doctors %}
+    <div class="row g-4">
+        {% for doctor in doctors %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card doctor-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="feature-icon bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <i class="fas fa-user-md"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="card-title mb-1">Dr. {{ doctor.user.name }}</h5>
+                                <p class="text-primary small mb-0">{{ doctor.specialization }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <p class="card-text">
+                                <i class="fas fa-certificate text-success me-2"></i>
+                                License: {{ doctor.license_number }}
+                            </p>
+                            {% if doctor.years_experience %}
+                                <p class="card-text">
+                                    <i class="fas fa-award text-success me-2"></i>
+                                    {{ doctor.years_experience }} years experience
+                                </p>
+                            {% endif %}
+                            {% if doctor.user.phone %}
+                                <p class="card-text">
+                                    <i class="fas fa-phone text-success me-2"></i>
+                                    {{ doctor.user.phone }}
+                                </p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid">
+                            <a href="{{ url_for('booking_bp.select_time', doctor_id=doctor.id) }}" class="btn btn-primary">
+                                <i class="fas fa-calendar-plus me-2"></i>Book Appointment
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-user-md fa-4x text-muted mb-4"></i>
+        <h4 class="text-muted">No Doctors Available</h4>
+        <p class="text-muted">There are currently no doctors available at this clinic.</p>
+        <a href="{{ url_for('booking_bp.select_clinic') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i>Choose Another Clinic
+        </a>
+    </div>
+{% endif %}
+
+<div class="mt-4">
+    <a href="{{ url_for('booking_bp.select_clinic') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Clinics
+    </a>
+</div>
+{% endblock %}

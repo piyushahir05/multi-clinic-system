@@ -1,12 +1,15 @@
 import os
 from dotenv import load_dotenv
+from flask_migrate import Migrate
+from local_db import db 
+
 
 # Load environment variables from .env file (optional for SQLite setup)
 load_dotenv()
 
 # Import the local app configuration
 from local_app import app
-
+migrate = Migrate(app, db)
 if __name__ == '__main__':
     # Get port from environment variable or default to 5000
     port = int(os.environ.get('PORT', 5000))

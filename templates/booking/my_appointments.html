@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}My Appointments - Multi-Clinic Appointment System{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h2><i class="fas fa-calendar-alt me-2"></i>My Appointments</h2>
+    <p>View and manage your medical appointments</p>
+</div>
+
+<div class="mb-4">
+    <a href="{{ url_for('booking_bp.select_clinic') }}" class="btn btn-primary">
+        <i class="fas fa-calendar-plus me-2"></i>Book New Appointment
+    </a>
+</div>
+
+{% if appointments %}
+    <div class="row g-4">
+        {% for appointment in appointments %}
+            <div class="col-12">
+                <div class="card appointment-card {{ 'cancelled' if appointment.status == 'cancelled' else 'completed' if appointment.status == 'completed' else '' }}">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-start">
+                                    <div class="me-3">
+                                        {% if appointment.status == 'scheduled' %}
+                                            <div class="feature-icon bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                <i class="fas fa-calendar-check"></i>
+                                            </div>
+                                        {% elif appointment.status == 'completed' %}
+                                            <div class="feature-icon bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                <i class="fas fa-check-circle"></i>
+                                            </div>
+                                        {% else %}
+                                            <div class="feature-icon bg-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                <i class="fas fa-times-circle"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-1">Dr. {{ appointment.doctor.user.name }}</h5>
+                                        <p class="text-success mb-1">{{ appointment.doctor.specialization }}</p>
+                                        <p class="text-muted mb-0">
+                                            <i class="fas fa-hospital me-1"></i>{{ appointment.doctor.clinic.name }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="text-md-center">
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-calendar-day me-1"></i>
+                                        {{ appointment.time_slot.date.strftime('%B %d, %Y') }}
+                                    </h6>
+                                    <p class="mb-1">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ appointment.time_slot.start_time }} - {{ appointment.time_slot.end_time }}
+                                    </p>
+                                    <span class="badge {{ 'bg-success' if appointment.status == 'scheduled' else 'bg-primary' if appointment.status == 'completed' else 'bg-danger' }}">
+                                        {{ appointment.status.title() }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-2">
+                                {% if appointment.status == 'scheduled' %}
+                                    <div class="text-md-end">
+                                        <form method="POST" action="{{ url_for('booking_bp.cancel_appointment', appointment_id=appointment.id) }}" 
+                                              onsubmit="return confirm('Are you sure you want to cancel this appointment?');" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                <i class="fas fa-times me-1"></i>Cancel
+                                            </button>
+                                        </form>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if appointment.notes %}
+                            <div class="mt-3 pt-3 border-top">
+                                <h6 class="mb-2">
+                                    <i class="fas fa-notes-medical me-1"></i>Notes:
+                                </h6>
+                                <p class="text-muted mb-0">{{ appointment.notes }}</p>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mt-3 pt-3 border-top">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Appointment booked on {{ appointment.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-calendar-times fa-4x text-muted mb-4"></i>
+        <h4 class="text-muted">No Appointments Found</h4>
+        <p class="text-muted">You haven't booked any appointments yet.</p>
+        <a href="{{ url_for('booking_bp.select_clinic') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-calendar-plus me-2"></i>Book Your First Appointment
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

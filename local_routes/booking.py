@@ -2,6 +2,8 @@ from flask import Blueprint, request, render_template, redirect, url_for, sessio
 from local_models import Clinic, Doctor, TimeSlot, Appointment, User
 from local_db import db
 from datetime import datetime, date
+from collections import defaultdict
+
 
 booking_bp = Blueprint('booking_bp', __name__)
 
@@ -42,6 +44,8 @@ def select_doctor(clinic_id):
     
     return render_template('booking/select_doctor.html', clinic=clinic, doctors=doctors)
 
+from datetime import date, timedelta
+
 @booking_bp.route('/book/select-time/<int:doctor_id>')
 def select_time(doctor_id):
     redirect_response = require_patient()
@@ -49,22 +53,31 @@ def select_time(doctor_id):
         return redirect_response
     
     doctor = Doctor.query.get_or_404(doctor_id)
-    
-    # Get available time slots for the next 7 days
+
     today = date.today()
     available_slots = TimeSlot.query.filter(
         TimeSlot.doctor_id == doctor_id,
         TimeSlot.date >= today,
         TimeSlot.is_available == True
     ).order_by(TimeSlot.date, TimeSlot.start_time).limit(50).all()
-    
+
+    print(f"Doctor ID: {doctor_id}, Slots found: {len(available_slots)}")
+    for slot in available_slots:
+        print(f"{slot.date} {slot.start_time} - {slot.end_time} Available: {slot.is_available}")
+
     if not available_slots:
         flash('No available time slots for this doctor.', 'warning')
         return redirect(url_for('booking_bp.select_doctor', clinic_id=doctor.clinic_id))
-    
-    return render_template('booking/select_time.html', doctor=doctor, time_slots=available_slots)
 
-@booking_bp.route('/book/confirm/<int:time_slot_id>', methods=['POST'])
+    # Group time slots by date
+    slots_by_date = defaultdict(list)
+    for slot in available_slots:
+        slots_by_date[slot.date].append(slot)
+
+    return render_template('booking/select_time.html', doctor=doctor, slots_by_date=slots_by_date)
+
+
+@booking_bp.route('/book/confirm/<int:time_slot_id>', methods=['POST','GET'])
 def confirm_booking(time_slot_id):
     redirect_response = require_patient()
     if redirect_response:
@@ -107,18 +120,19 @@ def confirm_booking(time_slot_id):
         flash('An error occurred while booking your appointment. Please try again.', 'error')
         return redirect(url_for('booking_bp.select_time', doctor_id=time_slot.doctor_id))
 
-@booking_bp.route('/booking-confirmation/<int:appointment_id>')
-def booking_confirmation(appointment_id):
+@booking_bp.route('/booking-confirmation/<int:time_slot_id>', methods=['GET'])
+def booking_confirmation(time_slot_id):
     redirect_response = require_patient()
     if redirect_response:
         return redirect_response
-    
-    appointment = Appointment.query.filter_by(
-        id=appointment_id,
-        patient_id=session['user_id']
-    ).first_or_404()
-    
-    return render_template('booking/confirmation.html', appointment=appointment)
+
+    time_slot = TimeSlot.query.get_or_404(time_slot_id)
+
+    # You can also fetch doctor info here if needed
+    doctor = Doctor.query.get(time_slot.doctor_id)
+
+    return render_template('booking/confirmation.html', time_slot=time_slot, doctor=doctor)
+
 
 @booking_bp.route('/my-appointments')
 def my_appointments():
