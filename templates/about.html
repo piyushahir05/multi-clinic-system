@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}About Us{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 720px;">
+  <h1 class="display-4 fw-bold text-primary mb-4 text-center border-bottom border-3 border-primary pb-3">
+    About HealWell
+  </h1>
+
+  <div class="text-center mb-5">
+    <img src="{{ url_for('static', filename='images/logo.jpg') }}" 
+         alt="HealWell Logo" 
+         class="img-fluid rounded shadow-lg"
+         style="max-width: 250px;">
+  </div>
+
+  <p class="lead text-muted fs-5 mb-4">
+    HealWell is a comprehensive healthcare platform designed to simplify appointment bookings across multiple clinics and healthcare providers.
+  </p>
+
+  <section class="mb-5">
+    <h3 class="text-secondary fw-semibold mb-3">Our Mission</h3>
+    <p class="fs-5 text-muted">
+      To make healthcare accessible and convenient for everyone by leveraging technology to connect patients with the right doctors seamlessly.
+    </p>
+  </section>
+
+  <section class="mb-5">
+    <h3 class="text-secondary fw-semibold mb-3">What We Offer</h3>
+    <ul class="list-group list-group-flush shadow-sm rounded">
+      <li class="list-group-item py-3">
+        <i class="fas fa-check-circle text-success me-3"></i>
+        Easy and quick online appointment scheduling
+      </li>
+      <li class="list-group-item py-3">
+        <i class="fas fa-check-circle text-success me-3"></i>
+        Access to a wide network of clinics and specialists
+      </li>
+      <li class="list-group-item py-3">
+        <i class="fas fa-check-circle text-success me-3"></i>
+        Real-time updates on appointment availability and reminders
+      </li>
+      <li class="list-group-item py-3">
+        <i class="fas fa-check-circle text-success me-3"></i>
+        Secure and user-friendly patient portal for managing appointments
+      </li>
+    </ul>
+  </section>
+
+  <section class="mb-5">
+    <h3 class="text-secondary fw-semibold mb-3">Why Choose Us?</h3>
+    <ul class="list-group list-group-flush shadow-sm rounded">
+      <li class="list-group-item py-3">
+        <i class="fas fa-star text-warning me-3"></i>
+        Saves your time and effort by avoiding long waiting queues
+      </li>
+      <li class="list-group-item py-3">
+        <i class="fas fa-star text-warning me-3"></i>
+        Enables patients to choose doctors based on specialties and ratings
+      </li>
+      <li class="list-group-item py-3">
+        <i class="fas fa-star text-warning me-3"></i>
+        Supports multiple clinics and doctors under one platform
+      </li>
+      <li class="list-group-item py-3">
+        <i class="fas fa-star text-warning me-3"></i>
+        24/7 access from any device
+      </li>
+    </ul>
+  </section>
+
+  <p class="fs-5">
+    If you have any questions or need support, please feel free to 
+    <a href="{{ url_for('auth_bp.contact') }}" class="text-decoration-underline text-primary fw-semibold">
+      contact us
+    </a>.
+  </p>
+</div>
+{% endblock %}

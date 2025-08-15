@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Clinic - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h2><i class="fas fa-edit me-2"></i>Edit Clinic</h2>
+    <p>Update the details of the clinic</p>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('admin_bp.edit_clinic', clinic_id=clinic.id) }}">
+         
+
+            <div class="mb-3">
+                <label for="name" class="form-label">Clinic Name</label>
+                <input type="text" class="form-control" id="name" name="name" 
+                       value="{{ clinic.name }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="address" class="form-label">Address</label>
+                <textarea class="form-control" id="address" name="address" rows="2" required>{{ clinic.address }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="phone" class="form-label">Phone</label>
+                <input type="text" class="form-control" id="phone" name="phone" 
+                       value="{{ clinic.phone or '' }}">
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" 
+                       value="{{ clinic.email or '' }}">
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('admin_bp.manage_clinics') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Back
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Update Clinic
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

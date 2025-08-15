@@ -1,0 +1,377 @@
+{% extends "base.html" %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="container">
+            <div class="row justify-content-center align-items-center">
+                <!-- Left side image -->
+                <div class="col-md-6 d-none d-md-block">
+                    <img src="{{ url_for('static', filename='images/register.jpg') }}" alt="Register Image"
+                        class="img-fluid rounded shadow-lg" style="position: relative; top: -180px;">
+
+                </div>
+
+                <!-- Right side form -->
+                <div class="col-md-8 col-lg-6">
+                    <div class="card shadow-lg border-0">
+                        <div class="card-header bg-success text-white text-center py-4">
+                            <h3 class="mb-0">
+                                <i class="fas fa-user-plus"></i> Create Your Account
+                            </h3>
+                            <p class="mb-0 mt-2">Join our healthcare community as a patient</p>
+                        </div>
+                        <div class="card-body p-5">
+                            <form id="registerForm" method="POST">
+                                <div class="row">
+                                    <!-- Email -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label fw-bold">
+                                            <i class="fas fa-envelope"></i> Email Address *
+                                        </label>
+                                        <input type="email" class="form-control" id="email" name="email" required
+                                            placeholder="your.email@example.com">
+                                        <div class="invalid-feedback" id="emailError"></div>
+                                    </div>
+
+                                    <!-- Username -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="username" class="form-label fw-bold">
+                                            <i class="fas fa-user"></i> Username *
+                                        </label>
+                                        <input type="text" class="form-control" id="username" name="username" required
+                                            placeholder="Choose a username">
+                                        <div class="invalid-feedback" id="usernameError"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Full Name -->
+                                <div class="mb-3">
+                                    <label for="full_name" class="form-label fw-bold">
+                                        <i class="fas fa-id-card"></i> Full Name *
+                                    </label>
+                                    <input type="text" class="form-control" id="full_name" name="full_name" required
+                                        placeholder="Enter your full name">
+                                    <div class="invalid-feedback" id="fullNameError"></div>
+                                </div>
+
+                                <!-- Password -->
+                                <div class="mb-3">
+                                    <label for="password" class="form-label fw-bold">
+                                        <i class="fas fa-lock"></i> Password *
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="password" name="password"
+                                            required placeholder="Create a strong password">
+                                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="invalid-feedback" id="passwordError"></div>
+                                    <div class="form-text">Password must be at least 6 characters long</div>
+                                </div>
+
+                                <div class="row">
+                                    <!-- Phone -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="phone" class="form-label fw-bold">
+                                            <i class="fas fa-phone"></i> Phone Number
+                                        </label>
+                                        <input type="tel" class="form-control" id="phone" name="phone"
+                                            placeholder="Your phone number">
+                                        <div class="invalid-feedback" id="phoneError"></div>
+                                    </div>
+
+                                    <!-- Age -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="age" class="form-label fw-bold">
+                                            <i class="fas fa-birthday-cake"></i> Age
+                                        </label>
+                                        <input type="number" class="form-control" id="age" name="age" min="1" max="120"
+                                            placeholder="Your age">
+                                        <div class="invalid-feedback" id="ageError"></div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <!-- Gender -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="gender" class="form-label fw-bold">
+                                            <i class="fas fa-venus-mars"></i> Gender
+                                        </label>
+                                        <select class="form-select" id="gender" name="gender">
+                                            <option value="">Select gender</option>
+                                            <option value="male">Male</option>
+                                            <option value="female">Female</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Blood Group -->
+                                    <div class="col-md-6 mb-4">
+                                        <label for="blood_group" class="form-label fw-bold">
+                                            <i class="fas fa-tint"></i> Blood Group
+                                        </label>
+                                        <select class="form-select" id="blood_group" name="blood_group">
+                                            <option value="">Select blood group</option>
+                                            <option value="A+">A+</option>
+                                            <option value="A-">A-</option>
+                                            <option value="B+">B+</option>
+                                            <option value="B-">B-</option>
+                                            <option value="AB+">AB+</option>
+                                            <option value="AB-">AB-</option>
+                                            <option value="O+">O+</option>
+                                            <option value="O-">O-</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Terms and Conditions -->
+                                <div class="mb-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                                        <label class="form-check-label" for="agreeTerms">
+                                            I agree to the <a href="#" class="text-primary">Terms of Service</a> and
+                                            <a href="#" class="text-primary">Privacy Policy</a> *
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <div class="d-grid mb-3">
+                                    <button type="submit" class="btn btn-success btn-lg" id="registerBtn">
+                                        <i class="fas fa-user-plus"></i> Create Account
+                                        <span class="spinner-border spinner-border-sm ms-2 d-none"
+                                            id="registerSpinner"></span>
+                                    </button>
+                                </div>
+
+                                <!-- Error Display -->
+                                <div class="alert alert-danger d-none" id="errorAlert">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <span id="errorMessage"></span>
+                                </div>
+                            </form>
+
+                            <!-- Divider -->
+                            <hr class="my-4">
+
+                            <!-- Login Link -->
+                            <div class="text-center">
+                                <p class="mb-0">Already have an account?</p>
+                                <a href="{{ url_for('auth_bp.login') }}" class="btn btn-outline-primary mt-2">
+                                    <i class="fas fa-sign-in-alt"></i> Login to Your Account
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endblock %}
+
+        {% block scripts %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const registerForm = document.getElementById('registerForm');
+                const registerBtn = document.getElementById('registerBtn');
+                const registerSpinner = document.getElementById('registerSpinner');
+                const errorAlert = document.getElementById('errorAlert');
+                const errorMessage = document.getElementById('errorMessage');
+                const togglePassword = document.getElementById('togglePassword');
+                const passwordInput = document.getElementById('password');
+
+                // Toggle password visibility
+                togglePassword.addEventListener('click', function () {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+
+                    const icon = this.querySelector('i');
+                    icon.classList.toggle('fa-eye');
+                    icon.classList.toggle('fa-eye-slash');
+                });
+
+                // Form submission
+                registerForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+
+                    // Validate form
+                    if (!validateForm()) {
+                        return;
+                    }
+
+                    // Show loading state
+                    registerBtn.disabled = true;
+                    registerSpinner.classList.remove('d-none');
+                    errorAlert.classList.add('d-none');
+
+                    const formData = new FormData(registerForm);
+                    const registerData = Object.fromEntries(formData.entries());
+
+                    fetch('{{ url_for("auth_bp.register") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(registerData)
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Show success message and redirect
+                                alert('Registration successful! You will be redirected to your dashboard.');
+                                window.location.href = data.redirect || '{{ url_for("auth_bp.dashboard") }}';
+                            } else {
+                                // Show error
+                                errorMessage.textContent = data.message || 'Registration failed. Please try again.';
+                                errorAlert.classList.remove('d-none');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            errorMessage.textContent = 'An error occurred. Please try again.';
+                            errorAlert.classList.remove('d-none');
+                        })
+                        .finally(() => {
+                            // Hide loading state
+                            registerBtn.disabled = false;
+                            registerSpinner.classList.add('d-none');
+                        });
+                });
+
+                // Validation functions
+                function validateForm() {
+                    let isValid = true;
+
+                    // Email validation
+                    const email = document.getElementById('email').value;
+                    if (!validateEmail(email)) {
+                        isValid = false;
+                    }
+
+                    // Password validation
+                    const password = document.getElementById('password').value;
+                    if (!validatePassword(password)) {
+                        isValid = false;
+                    }
+
+                    // Full name validation
+                    const fullName = document.getElementById('full_name').value;
+                    if (!validateFullName(fullName)) {
+                        isValid = false;
+                    }
+
+                    // Username validation
+                    const username = document.getElementById('username').value;
+                    if (!validateUsername(username)) {
+                        isValid = false;
+                    }
+
+                    return isValid;
+                }
+
+                function validateEmail(email) {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    const emailInput = document.getElementById('email');
+                    const emailError = document.getElementById('emailError');
+
+                    if (!email) {
+                        showFieldError(emailInput, emailError, 'Email is required');
+                        return false;
+                    }
+
+                    if (!emailRegex.test(email)) {
+                        showFieldError(emailInput, emailError, 'Please enter a valid email address');
+                        return false;
+                    }
+
+                    showFieldSuccess(emailInput);
+                    return true;
+                }
+
+                function validatePassword(password) {
+                    const passwordInput = document.getElementById('password');
+                    const passwordError = document.getElementById('passwordError');
+
+                    if (!password) {
+                        showFieldError(passwordInput, passwordError, 'Password is required');
+                        return false;
+                    }
+
+                    if (password.length < 6) {
+                        showFieldError(passwordInput, passwordError, 'Password must be at least 6 characters long');
+                        return false;
+                    }
+
+                    showFieldSuccess(passwordInput);
+                    return true;
+                }
+
+                function validateFullName(fullName) {
+                    const fullNameInput = document.getElementById('full_name');
+                    const fullNameError = document.getElementById('fullNameError');
+
+                    if (!fullName) {
+                        showFieldError(fullNameInput, fullNameError, 'Full name is required');
+                        return false;
+                    }
+
+                    if (fullName.length < 2) {
+                        showFieldError(fullNameInput, fullNameError, 'Full name must be at least 2 characters long');
+                        return false;
+                    }
+
+                    showFieldSuccess(fullNameInput);
+                    return true;
+                }
+
+                function validateUsername(username) {
+                    const usernameInput = document.getElementById('username');
+                    const usernameError = document.getElementById('usernameError');
+
+                    if (!username) {
+                        showFieldError(usernameInput, usernameError, 'Username is required');
+                        return false;
+                    }
+
+                    if (username.length < 3) {
+                        showFieldError(usernameInput, usernameError, 'Username must be at least 3 characters long');
+                        return false;
+                    }
+
+                    showFieldSuccess(usernameInput);
+                    return true;
+                }
+
+                function showFieldError(input, errorElement, message) {
+                    input.classList.remove('is-valid');
+                    input.classList.add('is-invalid');
+                    errorElement.textContent = message;
+                }
+
+                function showFieldSuccess(input) {
+                    input.classList.remove('is-invalid');
+                    input.classList.add('is-valid');
+                }
+
+                // Real-time validation
+                document.getElementById('email').addEventListener('blur', function () {
+                    validateEmail(this.value);
+                });
+
+                document.getElementById('password').addEventListener('blur', function () {
+                    validatePassword(this.value);
+                });
+
+                document.getElementById('full_name').addEventListener('blur', function () {
+                    validateFullName(this.value);
+                });
+
+                document.getElementById('username').addEventListener('blur', function () {
+                    validateUsername(this.value);
+                });
+            });
+        </script>
+        {% endblock %}

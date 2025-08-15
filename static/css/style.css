@@ -1,6 +1,8 @@
 /* Multi-Clinic Appointment System - Custom Styles */
 
 /* Color Palette - Bluish-White Medical Theme */
+
+
 :root {
     --primary-blue: #007bff;
     --light-blue: #e3f2fd;
@@ -21,6 +23,11 @@ body {
     color: #333;
     line-height: 1.6;
 }
+
+.custom-color {
+  color: #aa00b3 !important;
+}
+
 
 /* Navigation Enhancements */
 .navbar {
@@ -50,7 +57,7 @@ body {
 }
 
 .hero-section h1 {
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* Card Enhancements */
@@ -95,15 +102,22 @@ body {
 }
 
 /* Role Cards */
+
 .role-card {
     border: 2px solid transparent;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transform-style: preserve-3d;
+    will-change: transform;
 }
 
 .role-card:hover {
-    border-color: var(--primary-blue);
-    transform: translateY(-5px);
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    z-index: 10; /* bring to front */
 }
+
+
+
 
 /* Clinic, Doctor, and Slot Cards */
 .clinic-card, .doctor-card, .slot-card {
@@ -150,6 +164,8 @@ body {
     padding-bottom: 0.5rem;
     border-bottom: 2px solid var(--light-blue) !important;
 }
+
+
 
 /* Button Enhancements */
 .btn {
@@ -472,3 +488,9 @@ body {
 .shadow-lg {
     box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
 }
+
+
+
+
+
+

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 720px;">
+  <h1 class="display-4 fw-bold text-primary mb-4 text-center border-bottom border-3 border-primary pb-3">
+    Contact Us
+  </h1>
+
+  <p class="lead text-muted fs-5 mb-5 text-center">
+    We'd love to hear from you! Reach out to us anytime and we'll get back to you as soon as possible.
+  </p>
+
+  <ul class="list-group shadow-sm rounded">
+    <li class="list-group-item py-3 d-flex align-items-center">
+      <i class="fas fa-envelope fa-lg text-primary me-3"></i>
+      <span class="fs-5">Email: <a href="mailto:support@healwell.com" class="text-decoration-none">support@healwell.com</a></span>
+    </li>
+    <li class="list-group-item py-3 d-flex align-items-center">
+      <i class="fas fa-phone fa-lg text-primary me-3"></i>
+      <span class="fs-5">Phone: <a href="tel:+15551234567" class="text-decoration-none">+1 (555) 123-4567</a></span>
+    </li>
+    <li class="list-group-item py-3 d-flex align-items-center">
+      <i class="fas fa-map-marker-alt fa-lg text-primary me-3"></i>
+      <span class="fs-5">Address: 123 Healthcare Lane, Wellness City</span>
+    </li>
+  </ul>
+
+  <div class="mt-5 text-center">
+    <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg shadow">
+      <i class="fas fa-home me-2"></i>Back to Home
+    </a>
+  </div>
+</div>
+{% endblock %}

@@ -6,6 +6,17 @@ from utils.validation import validate_email, validate_password
 
 auth_bp = Blueprint('auth_bp', __name__)
 
+
+
+@auth_bp.route('/about')
+def about():
+    return render_template('about.html', title="About Us")
+
+@auth_bp.route('/contact')
+def contact():
+    return render_template('contact.html', title="Contact Us")
+
+
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':

@@ -3,47 +3,104 @@
 {% block title %}Home - Multi-Clinic Appointment System{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<div class="hero-section bg-primary text-white py-5 mb-5">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold mb-4">
-                    <i class="fas fa-heart text-light"></i>
-                    Your Health, Our Priority
-                </h1>
-                <p class="lead mb-4">
-                    Book appointments with top doctors across multiple clinics. 
-                    Experience seamless healthcare management with our advanced booking system.
-                </p>
-                {% if not session.user_id %}
-                    <div class="d-flex gap-3">
-                        <a href="{{ url_for('auth_bp.register') }}" class="btn btn-light btn-lg">
-                            <i class="fas fa-user-plus"></i> Get Started
-                        </a>
-                        <a href="{{ url_for('auth_bp.login') }}" class="btn btn-outline-light btn-lg">
-                            <i class="fas fa-sign-in-alt"></i> Login
-                        </a>
-                    </div>
-                {% else %}
-                    <a href="{{ url_for('auth_bp.dashboard') }}" class="btn btn-light btn-lg">
-                        <i class="fas fa-tachometer-alt"></i> Go to Dashboard
-                    </a>
-                {% endif %}
-            </div>
-            <div class="col-lg-6 text-center">
-                <i class="fas fa-hospital fa-10x text-light opacity-75"></i>
-            </div>
-        </div>
-    </div>
-</div>
+<style>
+.index-bg {
+  position: relative;
+  min-height: 100vh;
+  background: url('{{ url_for('static', filename='images/clinic-image.jpg') }}') center center/cover no-repeat fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+.bg-overlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 123, 255, 0); /* adjust opacity as needed */
+  z-index: 0;
+  pointer-events: none;
+}
+.index-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+.fade-up {
+    opacity: 0;
+    transform: translateY(50px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+.fade-up.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const elements = document.querySelectorAll('.fade-up');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('show');
+            } else {
+                entry.target.classList.remove('show');
+            }
+        });
+    }, { threshold: 0.1 });
 
-<!-- Features Section -->
+    elements.forEach(el => observer.observe(el));
+});
+</script>
+
+<div class="index-bg">
+  <div class="bg-overlay"></div>
+  <div class="index-content">
+    <!-- Place all your existing content below inside this div -->
+
+    <!-- Hero Section -->
+    <div class="container mb-5 fade-up">
+      <div class="hero-section bg-transparent text-white py-5 mb-5">
+        <div class="container">
+          <div class="row align-items-center">
+            <!-- Left Side: Text & Buttons -->
+            <div class="col-lg-6 mb-4 mb-lg-0">
+              <h1 class="display-4 fw-bold mb-4" style="color:white">
+                <i class="fas fa-user-md text-light"></i>
+                Your Health, Our Priority
+              </h1>
+              <p class="lead mb-4 " style="color:white" >
+                Book appointments with top doctors across multiple clinics. 
+                Experience seamless healthcare management with our advanced booking system.
+              </p>
+              {% if not session.user_id %}
+                <div class="d-flex gap-3">
+                  <a href="{{ url_for('auth_bp.register') }}" class="btn btn-light btn-lg">
+                    <i class="fas fa-user-plus"></i> Get Started
+                  </a>
+                  <a href="{{ url_for('auth_bp.login') }}" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                  </a>
+                </div>
+              {% else %}
+                <a href="{{ url_for('auth_bp.dashboard') }}" class="btn btn-light btn-lg">
+                  <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                </a>
+              {% endif %}
+            </div>
+            <!-- Right Side: Image (optional, you can remove this if you want only background) -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="container mb-5 fade-up"> 
 <div class="container mb-5">
     <div class="row text-center mb-5">
         <div class="col">
-            <h2 class="display-5 fw-bold text-primary mb-3">Why Choose MediCare?</h2>
-            <p class="lead text-muted">Experience the future of healthcare appointment management</p>
+            <h2 class="display-5 fw-bold text-primary mb-3">Why Choose  HealWell?</h2>
+          <p class="lead" style="color:white !important;font-size: 2rem ;">Experience the future of healthcare appointment management</p>
         </div>
     </div>
 
@@ -91,8 +148,12 @@
         </div>
     </div>
 </div>
+</div>
+
 
 <!-- How It Works Section -->
+ 
+ <div class="container mb-5 fade-up"> 
 <div class="bg-light py-5">
     <div class="container">
         <div class="row text-center mb-5">
@@ -137,8 +198,10 @@
         </div>
     </div>
 </div>
+</div>
 
 <!-- Login Types Section (for non-authenticated users) -->
+ <div class="bg-light py-5 fade-up">
 {% if not session.user_id %}
 <div class="container py-5">
     <div class="row text-center mb-5">
@@ -202,8 +265,10 @@
     </div>
 </div>
 {% endif %}
+</div>
 
 <!-- Statistics Section -->
+ <div class="bg-light py-5 fade-up">
 <div class="bg-primary text-white py-5">
     <div class="container">
         <div class="row text-center">
@@ -234,4 +299,70 @@
         </div>
     </div>
 </div>
+</div>
+
+<!-- Meet Our Doctors Section -->
+ <div class="bg-light py-5 fade-up">
+<div class="container py-5">
+    <div class="row text-center mb-5">
+        <div class="col">
+            <h2 class="display-5 fw-bold text-primary mb-3">Meet Our Doctors</h2>
+            <p class="lead text-muted">Highly skilled and experienced specialists dedicated to your care</p>
+        </div>
+    </div>
+    </div>
+<div class="bg-light py-5 fade-up"> 
+    <div class="row g-4">
+        <!-- Doctor 1 -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <img src="{{ url_for('static', filename='images/team-1.jpg') }}" class="card-img-top" alt="Dr. Sarah Johnson">
+                <div class="card-body text-center">
+                    <h5 class="card-title fw-bold">Dr. Sarah Johnson</h5>
+                    <p class="text-primary mb-1">Cardiologist</p>
+                    <p class="text-muted small">15 years of experience</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Doctor 2 -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <img src="{{ url_for('static', filename='images/team-2.jpg') }}" class="card-img-top" alt="Dr. Michael Roberts">
+                <div class="card-body text-center">
+                    <h5 class="card-title fw-bold">Dr. Michael Roberts</h5>
+                    <p class="text-primary mb-1">Neurologist</p>
+                    <p class="text-muted small">20 years of experience</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Doctor 3 -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <img src="{{ url_for('static', filename='images/team-3.jpg') }}" class="card-img-top" alt="Dr. Emily Zhang">
+                <div class="card-body text-center">
+                    <h5 class="card-title fw-bold">Dr. Emily Zhang</h5>
+                    <p class="text-primary mb-1">Infectious Disease Specialist</p>
+                    <p class="text-muted small">12 years of experience</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Doctor 4 -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <img src="{{ url_for('static', filename='images/team-4.jpg') }}" class="card-img-top" alt="Dr. David Miller">
+                <div class="card-body text-center">
+                    <h5 class="card-title fw-bold">Dr. David Miller</h5>
+                    <p class="text-primary mb-1">Orthopedic Surgeon</p>
+                    <p class="text-muted small">18 years of experience</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
 {% endblock %}

@@ -77,19 +77,26 @@ def select_time(doctor_id):
     return render_template('booking/select_time.html', doctor=doctor, slots_by_date=slots_by_date)
 
 
-@booking_bp.route('/book/confirm/<int:time_slot_id>', methods=['POST','GET'])
+@booking_bp.route('/book/confirm/<int:time_slot_id>', methods=['GET', 'POST'])
 def confirm_booking(time_slot_id):
     redirect_response = require_patient()
     if redirect_response:
         return redirect_response
     
     time_slot = TimeSlot.query.get_or_404(time_slot_id)
+    doctor = Doctor.query.get(time_slot.doctor_id)
     
+    if request.method == 'GET':
+        if not time_slot.is_available:
+            flash('This time slot is no longer available.', 'error')
+            return redirect(url_for('booking_bp.select_time', doctor_id=doctor.id))
+        return render_template('booking/confirmation.html', time_slot=time_slot, doctor=doctor)
+    
+    # POST method: actually book the appointment
     if not time_slot.is_available:
         flash('This time slot is no longer available.', 'error')
-        return redirect(url_for('booking_bp.select_time', doctor_id=time_slot.doctor_id))
+        return redirect(url_for('booking_bp.select_time', doctor_id=doctor.id))
     
-    # Check if patient already has an appointment at this time
     existing_appointment = Appointment.query.filter_by(
         patient_id=session['user_id'],
         time_slot_id=time_slot_id
@@ -99,15 +106,12 @@ def confirm_booking(time_slot_id):
         flash('You already have an appointment at this time.', 'error')
         return redirect(url_for('booking_bp.my_appointments'))
     
-    # Create the appointment
     appointment = Appointment(
         patient_id=session['user_id'],
-        doctor_id=time_slot.doctor_id,
+        doctor_id=doctor.id,
         time_slot_id=time_slot_id,
         status='scheduled'
     )
-    
-    # Mark time slot as unavailable
     time_slot.is_available = False
     
     try:
@@ -115,23 +119,25 @@ def confirm_booking(time_slot_id):
         db.session.commit()
         flash('Appointment booked successfully!', 'success')
         return redirect(url_for('booking_bp.booking_confirmation', appointment_id=appointment.id))
-    except Exception as e:
+    except Exception:
         db.session.rollback()
         flash('An error occurred while booking your appointment. Please try again.', 'error')
-        return redirect(url_for('booking_bp.select_time', doctor_id=time_slot.doctor_id))
+        return redirect(url_for('booking_bp.select_time', doctor_id=doctor.id))
 
-@booking_bp.route('/booking-confirmation/<int:time_slot_id>', methods=['GET'])
-def booking_confirmation(time_slot_id):
+
+
+@booking_bp.route('/booking-confirmation/<int:appointment_id>', methods=['GET'])
+def booking_confirmation(appointment_id):
     redirect_response = require_patient()
     if redirect_response:
         return redirect_response
 
-    time_slot = TimeSlot.query.get_or_404(time_slot_id)
-
-    # You can also fetch doctor info here if needed
+    appointment = Appointment.query.get_or_404(appointment_id)
+    time_slot = TimeSlot.query.get(appointment.time_slot_id)
     doctor = Doctor.query.get(time_slot.doctor_id)
 
-    return render_template('booking/confirmation.html', time_slot=time_slot, doctor=doctor)
+    return render_template('booking/booking_confirmed.html', appointment=appointment, time_slot=time_slot, doctor=doctor)
+
 
 
 @booking_bp.route('/my-appointments')

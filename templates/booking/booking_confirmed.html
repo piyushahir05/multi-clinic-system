@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Confirmed - Multi-Clinic Appointment System{% endblock %}
+
+{% block content %}
+<div class="section-header text-center my-5">
+    <h2 class="text-success"><i class="fas fa-check-circle me-2"></i>Appointment Confirmed!</h2>
+    <p class="lead">Thank you for booking your appointment with HealWell. Your appointment details are below:</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-calendar-check me-2"></i>Appointment Details</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <strong>Doctor:</strong> Dr. {{ doctor.user.name }} <br>
+                        <small class="text-muted">{{ doctor.specialization }}</small>
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Clinic:</strong> {{ doctor.clinic.name }} <br>
+                        <small class="text-muted">{{ doctor.clinic.address }}</small>
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Date:</strong> {{ time_slot.date.strftime('%A, %B %d, %Y') }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Time:</strong> {{ time_slot.start_time }} - {{ time_slot.end_time }}
+                    </li>
+                    {% if appointment.notes %}
+                    <li class="list-group-item">
+                        <strong>Notes:</strong> {{ appointment.notes }}
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <div class="mt-4 text-center">
+                    <a href="{{ url_for('booking_bp.my_appointments') }}" class="btn btn-primary">
+                        <i class="fas fa-list me-2"></i>View My Appointments
+                    </a>
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary ms-2">
+                        <i class="fas fa-home me-2"></i>Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

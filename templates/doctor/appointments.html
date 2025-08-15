@@ -99,13 +99,13 @@
                             <div class="col-md-3">
                                 {% if appointment.status == 'scheduled' %}
                                     <div class="d-flex gap-2 justify-content-md-end">
-                                        <form method="POST" action="{{ url_for('doctor.complete_appointment', appointment_id=appointment.id) }}" 
+                                        <form method="POST" action="{{ url_for('doctor_bp.complete_appointment', appointment_id=appointment.id) }}" 
                                               onsubmit="return confirm('Mark this appointment as completed?');" class="d-inline">
                                             <button type="submit" class="btn btn-success btn-sm">
                                                 <i class="fas fa-check me-1"></i>Complete
                                             </button>
                                         </form>
-                                        <form method="POST" action="{{ url_for('doctor.cancel_appointment', appointment_id=appointment.id) }}" 
+                                        <form method="POST" action="{{ url_for('doctor_bp.cancel_appointment', appointment_id=appointment.id) }}" 
                                               onsubmit="return confirm('Are you sure you want to cancel this appointment?');" class="d-inline">
                                             <button type="submit" class="btn btn-outline-danger btn-sm">
                                                 <i class="fas fa-times me-1"></i>Cancel

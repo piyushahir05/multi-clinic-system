@@ -71,7 +71,7 @@
                 
                 <hr class="my-4">
                 
-                <form method="POST" action="{{ url_for('booking_bp.book_appointment', time_slot_id=time_slot.id) }}">
+                <form method="POST" action="{{ url_for('booking_bp.confirm_booking', time_slot_id=time_slot.id) }}">
                     <div class="mb-3">
                         <label for="notes" class="form-label">
                             <i class="fas fa-notes-medical me-1"></i>Additional Notes (Optional)

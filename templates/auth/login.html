@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<style>
+.login-bg {
+  position: relative;
+  min-height:100vh;
+  background:url('{{ url_for('static', filename='images/login.jpg') }}') center center/cover no-repeat fixed;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.bg-overlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 123, 255, 0);
+  z-index: 0;
+  pointer-events: none;
+}
+.login-wrapper {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 430px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>
+
+<div class="login-bg">
+  <div class="bg-overlay"></div>
+  <div class="login-wrapper">
+    <div class="card shadow-lg border-0 w-100">
+      <div class="card-header bg-primary text-white text-center py-4">
+        <h3 class="mb-0">
+          <i class="fas fa-sign-in-alt"></i> Login to Your Account
+        </h3>
+      </div>
+      <div class="card-body p-5">
+        <form id="loginForm" method="POST">
+          <!-- Role Selection -->
+          <div class="mb-4">
+            <label for="role" class="form-label fw-bold">
+              <i class="fas fa-user-tag"></i> Login As
+            </label>
+            <select class="form-select form-select-lg" id="role" name="role" required>
+              <option value="patient" {{ 'selected' if request.args.get('role')=='patient' else '' }}>Patient</option>
+              <option value="doctor" {{ 'selected' if request.args.get('role')=='doctor' else '' }}>Doctor</option>
+              <option value="admin" {{ 'selected' if request.args.get('role')=='admin' else '' }}>Admin</option>
+            </select>
+          </div>
+
+          <!-- Email -->
+          <div class="mb-3">
+            <label for="email" class="form-label fw-bold">
+              <i class="fas fa-envelope"></i> Email Address
+            </label>
+            <input type="email" class="form-control form-control-lg" id="email" name="email" required
+              placeholder="Enter your email address">
+            <div class="invalid-feedback" id="emailError"></div>
+          </div>
+
+          <!-- Password -->
+          <div class="mb-4">
+            <label for="password" class="form-label fw-bold">
+              <i class="fas fa-lock"></i> Password
+            </label>
+            <div class="input-group">
+              <input type="password" class="form-control form-control-lg" id="password"
+                name="password" required placeholder="Enter your password">
+              <button class="btn btn-outline-secondary" type="button" id="togglePassword" aria-label="Toggle password visibility">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            <div class="invalid-feedback" id="passwordError"></div>
+          </div>
+
+          <!-- Remember Me -->
+          <div class="mb-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="rememberMe" name="rememberMe">
+              <label class="form-check-label" for="rememberMe">
+                Remember me
+              </label>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="d-grid mb-3">
+            <button type="submit" class="btn btn-primary btn-lg" id="loginBtn">
+              <i class="fas fa-sign-in-alt"></i> Login
+              <span class="spinner-border spinner-border-sm ms-2 d-none" id="loginSpinner"></span>
+            </button>
+          </div>
+
+          <!-- Error Display -->
+          <div class="alert alert-danger d-none" id="errorAlert">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="errorMessage"></span>
+          </div>
+        </form>
+
+        <!-- Divider -->
+        <hr class="my-4">
+
+        <!-- Register Link -->
+        <div class="text-center">
+          <p class="mb-0">Don't have an account?</p>
+          <a href="{{ url_for('auth_bp.register') }}" class="btn btn-outline-primary mt-2">
+            <i class="fas fa-user-plus"></i> Create New Account
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const loginForm = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginSpinner = document.getElementById('loginSpinner');
+        const errorAlert = document.getElementById('errorAlert');
+        const errorMessage = document.getElementById('errorMessage');
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+
+        // Toggle password visibility
+        togglePassword.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+
+            const icon = this.querySelector('i');
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        });
+
+        // Form submission
+        loginForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Show loading state
+            loginBtn.disabled = true;
+            loginSpinner.classList.remove('d-none');
+            errorAlert.classList.add('d-none');
+
+            const formData = new FormData(loginForm);
+            const loginData = {
+                email: formData.get('email'),
+                password: formData.get('password'),
+                role: formData.get('role')
+            };
+
+            fetch('{{ url_for("auth_bp.login") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(loginData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Redirect on success
+                        window.location.href = data.redirect || '{{ url_for("auth_bp.dashboard") }}';
+                    } else {
+                        // Show error
+                        errorMessage.textContent = data.message || 'Login failed. Please try again.';
+                        errorAlert.classList.remove('d-none');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    errorMessage.textContent = 'An error occurred. Please try again.';
+                    errorAlert.classList.remove('d-none');
+                })
+                .finally(() => {
+                    // Hide loading state
+                    loginBtn.disabled = false;
+                    loginSpinner.classList.add('d-none');
+                });
+        });
+
+        // Real-time validation
+        const emailInput = document.getElementById('email');
+        emailInput.addEventListener('blur', function () {
+            validateEmail(this.value);
+        });
+
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const emailError = document.getElementById('emailError');
+
+            if (!email) {
+                emailInput.classList.remove('is-valid', 'is-invalid');
+                return false;
+            }
+
+            if (!emailRegex.test(email)) {
+                emailInput.classList.remove('is-valid');
+                emailInput.classList.add('is-invalid');
+                emailError.textContent = 'Please enter a valid email address';
+                return false;
+            }
+
+            emailInput.classList.remove('is-invalid');
+            emailInput.classList.add('is-valid');
+            return true;
+        }
+    });
+</script>
+{% endblock %}

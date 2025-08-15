@@ -1,5 +1,5 @@
 from flask import Blueprint, request, render_template, redirect, url_for, session, flash, jsonify
-from local_models import User, Clinic, Doctor, TimeSlot, Appointment
+from local_models import User, Clinic, Doctor, TimeSlot, Appointment,Patient
 from local_db import db
 from datetime import datetime, date, time
 from werkzeug.security import generate_password_hash
@@ -104,8 +104,26 @@ def edit_clinic(clinic_id):
 
     # Instead of edit_clinic.html, reuse manage_clinics.html and pass context for edit
     clinics = Clinic.query.all()
-    return render_template('admin/manage_clinics.html', clinics=clinics, editing_clinic=clinic)
+    return render_template('admin/edit_clinic.html', clinics=clinics, clinic=clinic)
 
+
+@admin_bp.route('/clinics/delete/<int:clinic_id>', methods=['POST'])
+def delete_clinic(clinic_id):
+    clinic = Clinic.query.get_or_404(clinic_id)
+
+    if clinic.doctors:
+        flash('Cannot delete clinic that has doctors assigned.', 'warning')
+        return redirect(url_for('admin_bp.manage_clinics'))
+
+    try:
+        db.session.delete(clinic)
+        db.session.commit()
+        flash('Clinic deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting clinic: {str(e)}', 'danger')
+
+    return redirect(url_for('admin_bp.manage_clinics'))
 
 
 
@@ -148,6 +166,7 @@ def add_doctor():
 
         # Create the user
         user = User(
+            username=email.split('@')[0],
             name=name.strip(),
             email=email.lower().strip(),
             phone=phone.strip() if phone else None,
@@ -175,9 +194,10 @@ def add_doctor():
             return redirect(url_for('admin_bp.manage_doctors'))
 
         except Exception as e:
-            db.session.rollback()
-            flash('An error occurred while adding the doctor.', 'error')
-            return render_template('admin/add_doctor.html', clinics=clinics)
+               db.session.rollback()
+               print("Error adding doctor:", e)  # So you can see it in the console
+               flash(f'An error occurred while adding the doctor: {str(e)}', 'error')
+               return redirect(url_for('admin_bp.manage_doctors'))
 
     return render_template('admin/add_doctor.html', clinics=clinics)
 
@@ -243,9 +263,51 @@ def manage_appointments():
     redirect_response = require_admin()
     if redirect_response:
         return redirect_response
-    
-    appointments = Appointment.query.order_by(Appointment.created_at.desc()).all()
-    return render_template('admin/manage_appointments.html', appointments=appointments)
+
+    # Get filter parameters from URL query string
+    status_filter = request.args.get('status', 'all')
+    date_filter = request.args.get('date')
+    search_filter = request.args.get('search', '').strip()
+
+    query = Appointment.query
+
+    # Apply status filter if not 'all'
+    if status_filter and status_filter != 'all':
+        query = query.filter(Appointment.status == status_filter)
+
+    # Apply date filter if present (assuming date_filter is 'YYYY-MM-DD')
+    if date_filter:
+        try:
+            from datetime import datetime
+            date_obj = datetime.strptime(date_filter, '%Y-%m-%d').date()
+            query = query.join(Appointment.time_slot).filter(Appointment.time_slot.date == date_obj)
+        except ValueError:
+            pass  # Invalid date, ignore
+
+    # Apply search filter if present (search by patient name, doctor name, or clinic name)
+    if search_filter:
+        # Join necessary tables and filter by search string
+        query = query.join(Appointment.patient).join(Appointment.doctor).join(Appointment.doctor.clinic).filter(
+            db.or_(
+                Patient.name.ilike(f'%{search_filter}%'),
+                Doctor.user.has(name=db.func.lower(search_filter)),  # or ilike
+                Clinic.name.ilike(f'%{search_filter}%')
+            )
+        )
+
+    # Order results
+    query = query.order_by(Appointment.created_at.desc())
+
+    # Pagination example: get page number from query string
+    page = request.args.get('page', 1, type=int)
+    appointments = query.paginate(page=page, per_page=10)
+
+    # Render template with filters to keep UI state
+    return render_template('admin/manage_appointments.html',
+                           appointments=appointments,
+                           status_filter=status_filter,
+                           date_filter=date_filter,
+                           search=search_filter)
 
 
 @admin_bp.route('/admin/time-slots')

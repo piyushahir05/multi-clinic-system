@@ -1,0 +1,174 @@
+Create a full-stack web application using the following tech stack:
+
+Frontend: HTML, CSS, JavaScript (no frontend frameworks)
+
+Backend: Flask (use modular structure with Blueprints, not monolithic)
+
+Database: SQLite (or MySQL)
+
+API: RESTful APIs using Flask (communicate via fetch/AJAX)
+
+🎯 Project Title:
+Multi-Clinic Doctor Appointment System
+
+📄 Description:
+The system allows patients to register/login, select a clinic, choose a doctor at that clinic, and book a specific available time slot. Booked slots should not be available to others. An Admin panel allows management of doctors, clinics, and slots. A Doctor panel allows doctors to view/manage their appointments. There should be no clash or double booking for a time slot.
+
+🧩 Core Functionalities:
+1. User Authentication (Patients & Doctors):
+Sign Up and Login pages
+
+Session/token-based login using Flask
+
+Separate login for:
+
+Patients
+
+Doctors
+
+Admin
+
+2. Patient Booking Flow:
+Show list of clinics
+
+On selecting clinic → show available doctors
+
+On selecting doctor → show available time slots
+
+Patient provides info:
+
+Name
+
+Age
+
+Gender
+
+Blood Group
+
+Book the appointment
+
+Backend must prevent double booking (time slot for a doctor can only be assigned to one patient)
+
+3. Admin Panel (CRUD):
+Admin login with dashboard
+
+Add/Edit/Delete:
+
+Clinics
+
+Doctors
+
+Time Slots
+
+View all booked appointments
+
+4. Doctor Panel:
+Doctor login
+
+View their schedule/appointments
+
+Manage availability (add/edit/delete time slots)
+
+5. Database Design:
+Separate table for:
+
+Users (with roles: patient, doctor, admin)
+
+Clinics
+
+Doctors
+
+Time Slots
+
+Appointments
+
+Optional: patient profile data
+
+6. Frontend Pages:
+Create separate HTML pages for:
+
+Home Page
+
+Patient Registration / Login
+
+Doctor Login
+
+Admin Login
+
+Appointment Booking
+
+Admin Dashboard
+
+Doctor Dashboard
+
+Booking Confirmation
+
+🎨 UI Design Requirements:
+Use a bluish-white color theme that reflects a clean, clinic-like appearance
+
+Use good font spacing, buttons, and sectioning to represent a medical portal
+
+Ensure form validation on the frontend (JS) and backend
+
+🗂️ Project Structure:
+pgsql
+Copy
+Edit
+project-root/
+│
+├── backend/
+│   ├── app.py
+│   ├── config.py
+│   ├── db.py
+│   ├── models/
+│   │   ├── user.py
+│   │   ├── doctor.py
+│   │   ├── clinic.py
+│   │   ├── appointment.py
+│   │   └── slot.py
+│   ├── routes/
+│   │   ├── auth.py
+│   │   ├── booking.py
+│   │   ├── admin.py
+│   │   └── doctor.py
+│   └── utils/
+│       └── validation.py
+│
+├── templates/
+│   ├── base.html
+│   ├── home.html
+│   ├── login.html
+│   ├── register.html
+│   ├── booking.html
+│   ├── admin_dashboard.html
+│   └── doctor_dashboard.html
+│
+├── static/
+│   ├── css/
+│   │   └── style.css
+│   ├── js/
+│   │   └── scripts.js
+│   └── images/
+│
+└── database/
+    └── schema.sql
+📦 Additional Requirements:
+Modular Flask backend using Blueprints
+
+Use SQLAlchemy ORM to manage database
+
+Use fetch() or AJAX for frontend–backend interaction
+
+Store patient info like name, mobile, email, and appointment info separately
+
+Prevent clashing time slots during booking
+
+Patients should only see available time slots
+
+After successful booking, slot should be marked unavailable
+
+Admin can view the full list of bookings
+
+Ensure separate HTML pages for each major view
+
+Add basic form validations for all user inputs

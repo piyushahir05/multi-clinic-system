@@ -1,7 +1,9 @@
 from flask import Blueprint, request, render_template, redirect, url_for, session, flash, jsonify
-from local_models import Doctor, TimeSlot, Appointment
+from local_models import Doctor, TimeSlot, Appointment,Patient
 from local_db import db
 from datetime import datetime, date, time
+from sqlalchemy.orm import aliased
+from sqlalchemy import or_, and_
 
 doctor_bp = Blueprint('doctor_bp', __name__)
 
@@ -63,26 +65,94 @@ def dashboard():
                          pending_appointments=pending_appointments,
                          stats=stats)
 
-
 @doctor_bp.route('/doctor/appointments')
 def appointments():
     redirect_response = require_doctor()
     if redirect_response:
         return redirect_response
-    
+
     doctor = get_doctor_profile()
     if not doctor:
         flash('Doctor profile not found.', 'error')
         return redirect(url_for('auth_bp.logout'))
-    
-    # Get all appointments for this doctor
-    appointments = Appointment.query.filter_by(doctor_id=doctor.id).order_by(
-        Appointment.created_at.desc()
-    ).all()
-    
-    return render_template('doctor/appointments.html', 
-                         doctor=doctor, 
-                         appointments=appointments)
+
+    # Get filter parameters from query string
+    status_filter = request.args.get('status', '')  # '' means no filter (all)
+    date_filter = request.args.get('date', '')      # expected format: 'YYYY-MM-DD'
+    search = request.args.get('search', '').strip() # patient name/email/phone search
+
+    # Base query for this doctor's appointments
+    query = Appointment.query.filter_by(doctor_id=doctor.id)
+
+    # Apply status filter if given
+    if status_filter:
+        query = query.filter(Appointment.status == status_filter)
+
+    # Apply date filter if given
+    if date_filter:
+        try:
+            from datetime import datetime
+            date_obj = datetime.strptime(date_filter, '%Y-%m-%d').date()
+            # Assuming Appointment has a relation to TimeSlot with a date field
+            query = query.join(Appointment.time_slot).filter(TimeSlot.date == date_obj)
+        except ValueError:
+            # Invalid date format, ignore filter or flash message if you want
+            pass
+
+    # Apply patient search filter if given
+    if search:
+        # Join with Patient to filter by name, email, or phone
+        query = query.join(Appointment.patient).filter(
+            (Patient.name.ilike(f'%{search}%')) |
+            (Patient.email.ilike(f'%{search}%')) |
+            (Patient.phone.ilike(f'%{search}%'))
+        )
+
+    # Order by creation time descending
+    query = query.order_by(Appointment.created_at.desc())
+
+    # Pagination
+    page = request.args.get('page', 1, type=int)
+    appointments = query.paginate(page=page, per_page=10)
+
+    return render_template('doctor/appointments.html',
+                           doctor=doctor,
+                           appointments=appointments,
+                           status=status_filter,
+                           date_filter=date_filter,
+                           search=search)
+
+
+
+@doctor_bp.route('/appointments/<int:appointment_id>/cancel', methods=['POST'])
+def cancel_appointment(appointment_id):
+    redirect_response = require_doctor()
+    if redirect_response:
+        return redirect_response
+
+    doctor = get_doctor_profile()
+    appointment = Appointment.query.filter_by(
+        id=appointment_id,
+        doctor_id=doctor.id
+    ).first_or_404()
+
+    if appointment.status == 'cancelled':
+        flash('This appointment is already cancelled.', 'warning')
+        return redirect(url_for('doctor_bp.appointments'))
+
+    appointment.status = 'cancelled'
+    if appointment.time_slot:
+        appointment.time_slot.is_available = True
+
+    try:
+        db.session.commit()
+        flash('Appointment cancelled successfully.', 'success')
+    except Exception:
+        db.session.rollback()
+        flash('An error occurred while cancelling the appointment.', 'error')
+
+    return redirect(url_for('doctor_bp.appointments'))
+
 
 
 
@@ -96,12 +166,33 @@ def schedule():
     if not doctor:
         flash('Doctor profile not found.', 'error')
         return redirect(url_for('auth_bp.logout'))
+    today = date.today()
+
+    query = TimeSlot.query.filter(
+    TimeSlot.doctor_id == doctor.id,
+    TimeSlot.date >= today  # only future and today dates
+)
 
     # Fetch filters from GET request
     date_filter = request.args.get('date')
     availability = request.args.get('availability')
 
-    query = TimeSlot.query.filter_by(doctor_id=doctor.id)
+    AppointmentAlias = aliased(Appointment)
+
+   
+    query = db.session.query(TimeSlot).outerjoin(
+    AppointmentAlias, TimeSlot.id == AppointmentAlias.time_slot_id
+).filter(
+    TimeSlot.doctor_id == doctor.id,
+    TimeSlot.date >= today,  # exclude past dates here
+    or_(
+        TimeSlot.is_available == True,
+        and_(
+            TimeSlot.is_available == False,
+            AppointmentAlias.status != 'completed'
+        )
+    )
+)
 
     if date_filter:
         try:
